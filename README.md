@@ -1,5 +1,5 @@
 # hopglass-server
-The HopGlass Server collects data from Freifunk networks and processes it to be used in HopGlass, for statistics and other purposes.
+The HopGlass Server collects data from Freifunk networks and processes it to be used in [HopGlass](https://github.com/plumpudding/hopglass), for statistics and other purposes.
 
 How to use
 ----------
