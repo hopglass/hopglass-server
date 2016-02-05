@@ -165,9 +165,9 @@ function getNodesJson() {
     node.flags = {}
     node.flags.gateway = false
     node.flags.online = isOnline(n)
-    node.flags.uplink = parsePeerGroup(n.statistics.mesh_vpn)
     node.statistics = {}
     if(n.statistics) {
+      node.flags.uplink = parsePeerGroup(n.statistics.mesh_vpn)
       node.statistics.uptime = n.statistics.uptime
       node.statistics.gateway = n.statistics.gateway
       node.statistics.memory_usage = (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total
@@ -252,7 +252,7 @@ function getMetrics() {
   counter_total_clients = 0
   for (k in nodes) {
     n = nodes[k]
-    if(n.nodeinfo && isOnline(n)) {
+    if(n.nodeinfo && isOnline(n) && n.statistics) {
       res += 'meshnode_clients{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.clients.total + '\n'
       res += 'meshnode_uptime{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.uptime + '\n'
       res += 'meshnode_traffic_rx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.rx.bytes + '\n'
