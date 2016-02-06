@@ -15,6 +15,7 @@ The following arguments can be supplied:
 |-------------------|-------|---|
 |webport           |4000   |webserver port|
 |iface             |bat0   |the interface to discover nodes on|
+|ifaces            |bat0   |a comma-seperated list of interfaces to discover nodes on|
 |nodeinfointerval  |180    |interval for nodeinfo queries (in seconds, low values can impact mesh performance)|
 |statisticsinterval|60     |interval for statistics and neighbourinfo queries (in seconds, low values can impact mesh performance)|
 |collectorport     |45123  |the port the data collector listens on|

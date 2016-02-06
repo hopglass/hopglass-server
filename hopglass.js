@@ -11,8 +11,8 @@ var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
 var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
 var collectorport = argv.collectorport ? argv.collectorport : 45123
 var webport = argv.webport ? argv.webport : 4000
-var iface = argv.iface ? argv.iface : 'bat0'
-var targetip = argv.targetip ? argv.targetip : 'ff02::2'
+var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : 'bat0']
+var targetip = argv.targetip ? argv.targetip : 'ff02::1'
 var targetport = argv.targetport ? argv.targetport : 1001
 
 fs.readFile('./data.json', 'utf8', (err, res) => {
@@ -61,16 +61,18 @@ collector.on('message', (msg, rinfo) => {
         nodes[id].neighbours = obj.neighbours
       nodes[id].lastseen = new Date().toISOString()
       if (obj.statistics || obj.neighbours && !nodes[id].nodeinfo) {
-        req = new Buffer('GET nodeinfo')
-        collector.send(req, 0, req.length, rinfo.port, rinfo.address)
+        retrieve('nodeinfo', rinfo.address)
       }
     }
   })
 })
 
-function retrieve(stat) {
+function retrieve(stat, address) {
+  ip = address ? address : targetip
   req = new Buffer('GET ' + stat)
-  collector.send(req, 0, req.length, targetport, targetip + '%' + iface)
+  ifaces.forEach((iface) => {
+    collector.send(req, 0, req.length, targetport, ip + '%' + iface)
+  })
 }
 
 function backupData() {
