@@ -4,7 +4,7 @@
   "description": "Collect data from Freifunk networks and provide it in serveral formats",
   "main": "hopglass.js",
   "dependencies": {
-    "jquery": "^2.2.0",
+    "async": "^1.5.2",
     "minimist": "^1.2.0"
   },
   "devDependencies": {},
