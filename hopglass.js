@@ -87,13 +87,17 @@ function backupData() {
 function startCollector() {
   collector.bind(collectorport)
   
-  retrieve('nodeinfo statistics neighbours')
+  retrieve('nodeinfo')
+  retrieve('neighbours')
+  retrieve('statistics')
+ 
   setInterval(() => {
     retrieve('nodeinfo')
   },nodeinfoInterval * 1000)
   
   setInterval(() => {
-    retrieve('statistics neighbours')
+    retrieve('neighbours')
+    retrieve('statistics')
   },statisticsInterval * 1000)
   
   setInterval(() => {
