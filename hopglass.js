@@ -1,22 +1,21 @@
-const dgram = require('dgram')
-const collector = dgram.createSocket('udp6')
-const zlib = require('zlib')
-const http = require('http')
-const fs = require('fs')
+var dgram = require('dgram')
+var collector = dgram.createSocket('udp6')
+var zlib = require('zlib')
+var http = require('http')
+var fs = require('fs')
 
 var argv = require('minimist')(process.argv.slice(2));
-console.log(argv)
 
-var nodeinfointerval = argv.nodeinfointerval ? argv.nodeinfointerval : 180
-var statisticsinterval = argv.statisticsinterval ? argv.statisticsinterval : 60
+var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
+var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
 var collectorport = argv.collectorport ? argv.collectorport : 45123
 var webport = argv.webport ? argv.webport : 4000
 var iface = argv.iface ? argv.iface : 'bat0'
 var targetip = argv.targetip ? argv.targetip : 'ff02::2'
 var targetport = argv.targetport ? argv.targetport : 1001
 
-fs.readFile("./data.json", 'utf8', (err, res) => {
-  if(err) {
+fs.readFile('./data.json', 'utf8', (err, res) => {
+  if (err) {
     console.log(err)
     nodes = {}
   } else {
@@ -36,31 +35,31 @@ collector.on('error', (err) => {
 
 collector.on('message', (msg, rinfo) => {
   zlib.inflateRaw(msg, (err,res) => {
-    if(err) {
+    if (err) {
       console.log('ERR: ' + err)
     } else {
       obj = JSON.parse(res)
-      if(obj.nodeinfo) {
+      if (obj.nodeinfo) {
         id = obj.nodeinfo.node_id
-      } else if(obj.statistics) {
+      } else if (obj.statistics) {
         id = obj.statistics.node_id
-      } else if(obj.neighbours) {
+      } else if (obj.neighbours) {
         id = obj.neighbours.node_id
       } else return
 
-      if(!nodes[id]) {
+      if (!nodes[id]) {
         nodes[id] = {}
         nodes[id].firstseen = new Date().toISOString()
       }
 
-      if(obj.nodeinfo)
+      if (obj.nodeinfo)
         nodes[id].nodeinfo = obj.nodeinfo
-      else if(obj.statistics)
+      else if (obj.statistics)
         nodes[id].statistics = obj.statistics
-      else if(obj.neighbours)
+      else if (obj.neighbours)
         nodes[id].neighbours = obj.neighbours
       nodes[id].lastseen = new Date().toISOString()
-      if(obj.statistics || obj.neighbours && !nodes[id].nodeinfo) {
+      if (obj.statistics || obj.neighbours && !nodes[id].nodeinfo) {
         req = new Buffer('GET nodeinfo')
         collector.send(req, 0, req.length, rinfo.port, rinfo.address)
       }
@@ -74,11 +73,11 @@ function retrieve(stat) {
 }
 
 function backupData() {
-  fs.writeFile("data.json", JSON.stringify(nodes), function(err) {
-    if(err)
+  fs.writeFile('data.json', JSON.stringify(nodes), function(err) {
+    if (err)
         return console.log(err)
   })
-  fs.writeFile("hosts", getHosts())
+  fs.writeFile('hosts', getHosts())
 }
 
 /////////////////////
@@ -91,11 +90,11 @@ function startCollector() {
   retrieve('nodeinfo statistics neighbours')
   setInterval(() => {
     retrieve('nodeinfo')
-  },nodeinfointerval * 1000)
+  },nodeinfoInterval * 1000)
   
   setInterval(() => {
     retrieve('statistics neighbours')
-  },statisticsinterval * 1000)
+  },statisticsInterval * 1000)
   
   setInterval(() => {
     backupData()
@@ -109,15 +108,15 @@ function startCollector() {
 var web = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.writeHead(200, { 'Content-Type': 'text/json' })
-  if(req.url=='/nodes.json')
+  if (req.url == '/nodes.json')
     res.write(getNodesJson())
-  else if(req.url=='/graph.json')
+  else if (req.url == '/graph.json')
     res.write(getGraphJson())
-  else if(req.url=='/metrics')
+  else if (req.url == '/metrics')
     res.write(getMetrics())
-  else if(req.url=='/raw.json')
+  else if (req.url == '/raw.json')
     res.write(JSON.stringify(nodes))
-  else if(req.url=='/hosts')
+  else if (req.url == '/hosts')
     res.write(getHosts())
   res.end()
 })
@@ -126,10 +125,10 @@ function getHosts() {
   res = ''
   for (k in nodes) {
     n = nodes[k]
-    if(n.nodeinfo) {
+    if (n.nodeinfo) {
       hostname = n.nodeinfo.hostname.toLowerCase().replace(/[^0-9a-z-_]/g,'')
       n.nodeinfo.network.addresses.forEach((a) => {
-        if(a.slice(0,4) != "fe80")
+        if (a.slice(0,4) != 'fe80')
           res += (a + ' ' + hostname) + '\n'
       })
     }
@@ -141,13 +140,13 @@ function getHosts() {
 
 function parsePeerGroup(pg) {
   for (i in pg) {
-    if(i == 'peers') {
+    if (i == 'peers') {
       for (j in pg[i]) {
-        if(pg[i][j])
+        if (pg[i][j])
           return true
       }
     } else {
-      if(parsePeerGroup(pg[i]))
+      if (parsePeerGroup(pg[i]))
         return true
     }
   }
@@ -166,7 +165,7 @@ function getNodesJson() {
     node.flags.gateway = false
     node.flags.online = isOnline(n)
     node.statistics = {}
-    if(n.statistics) {
+    if (n.statistics) {
       node.flags.uplink = parsePeerGroup(n.statistics.mesh_vpn)
       node.statistics.uptime = n.statistics.uptime
       node.statistics.gateway = n.statistics.gateway
@@ -183,7 +182,7 @@ function getNodesJson() {
     }
     node.lastseen = n.lastseen
     node.firstseen = n.firstseen
-    if(n.nodeinfo)
+    if (n.nodeinfo)
       njson.nodes.push(node)
   }
   njson.timestamp = new Date().toISOString()
@@ -191,7 +190,7 @@ function getNodesJson() {
 }
 
 function isOnline(node) {
-  return Math.abs(new Date(node.lastseen) - new Date()) < nodeinfointerval * 3000
+  return Math.abs(new Date(node.lastseen) - new Date()) < nodeinfoInterval * 3000
 }
 
 function getGraphJson() {
@@ -205,7 +204,7 @@ function getGraphJson() {
   counter = 0
   for (k in nodes) {
     n = nodes[k]
-    if(n.neighbours && isOnline(n)) {
+    if (n.neighbours && isOnline(n)) {
       nodeentry = {}
       nodeentry.node_id = n.neighbours.node_id
       for (mac in n.neighbours.batadv) {
@@ -219,7 +218,7 @@ function getGraphJson() {
   gjson.batadv.links = []
   for (k in nodes) {
     n = nodes[k]
-    if(n.neighbours && isOnline(n)) {
+    if (n.neighbours && isOnline(n)) {
       for (src in n.neighbours.batadv) {
         for (dest in n.neighbours.batadv[src].neighbours) {
           link = {}
@@ -228,7 +227,7 @@ function getGraphJson() {
           link.tq = 255 / n.neighbours.batadv[src].neighbours[dest].tq
           link.bidirect = false
           link.vpn = false
-          if(link.source && link.target)
+          if (link.source && link.target)
           gjson.batadv.links.push(link)
         }
       }
@@ -252,21 +251,23 @@ function getMetrics() {
   counter_total_clients = 0
   for (k in nodes) {
     n = nodes[k]
-    if(n.nodeinfo && isOnline(n) && n.statistics) {
-      res += 'meshnode_clients{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.clients.total + '\n'
-      res += 'meshnode_uptime{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.uptime + '\n'
-      res += 'meshnode_traffic_rx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.rx.bytes + '\n'
-      res += 'meshnode_traffic_rx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_rx.bytes + '\n'
-      res += 'meshnode_traffic_tx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.tx.bytes + '\n'
-      res += 'meshnode_traffic_tx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_tx.bytes + '\n'
-      res += 'meshnode_traffic_forward{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.forward.bytes + '\n'
+    if (n.nodeinfo && isOnline(n)) {
       counter_meshnodes_online_total++
-      counter_total_traffic_rx += n.statistics.traffic.rx.bytes
-      counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
-      counter_total_traffic_rx += n.statistics.traffic.rx.bytes
-      counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
-      counter_total_traffic_forward += n.statistics.traffic.forward.bytes
-      counter_total_clients += n.statistics.clients.total
+      if(n.statistics) {
+        res += 'meshnode_clients{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.clients.total + '\n'
+        res += 'meshnode_uptime{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.uptime + '\n'
+        res += 'meshnode_traffic_rx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.rx.bytes + '\n'
+        res += 'meshnode_traffic_rx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_rx.bytes + '\n'
+        res += 'meshnode_traffic_tx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.tx.bytes + '\n'
+        res += 'meshnode_traffic_tx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_tx.bytes + '\n'
+        res += 'meshnode_traffic_forward{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.forward.bytes + '\n'
+        counter_total_traffic_rx += n.statistics.traffic.rx.bytes
+        counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
+        counter_total_traffic_rx += n.statistics.traffic.rx.bytes
+        counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
+        counter_total_traffic_forward += n.statistics.traffic.forward.bytes
+        counter_total_clients += n.statistics.clients.total
+      }
     }
   }
   res += 'meshnodes_total ' + Object.keys(nodes).length + '\n'
