@@ -4,7 +4,10 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 How to use
 ----------
 
-Install nodejs and start the server using `node /path/to/hopglass.js [args]`
+Setup is easy:
+1. Be sure to have nodejs and npm installed
+2. Install dependencies: `npm install`
+3. Start the server: `node hopglass.js [args]`
 
 The following arguments can be supplied:
 
