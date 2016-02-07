@@ -1,2 +1,4 @@
-data.json
+raw.json
+aliases.json
 hosts
+node_modules

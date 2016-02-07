@@ -4,6 +4,7 @@ var zlib = require('zlib')
 var http = require('http')
 var fs = require('fs')
 var async = require('async')
+var _ = require('lodash')
 
 var argv = require('minimist')(process.argv.slice(2))
 
@@ -15,14 +16,21 @@ var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : '
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
 var targetport = argv.targetport ? argv.targetport : 1001
 
-fs.readFile('./data.json', 'utf8', (err, res) => {
-  if (err) {
-    console.log(err)
-    nodes = {}
-  } else {
-    nodes = JSON.parse(res)
-  }
-  startCollector()
+raw = {}
+aliases = {}
+
+function getData() {
+  return _.merge({}, raw, aliases)
+}
+
+fs.readFile('./raw.json', 'utf8', (err, res) => {
+  if (!err)
+    raw = JSON.parse(res)
+  fs.readFile('./aliases.json', 'utf8', (err, res) => {
+    if (!err)
+      aliases = JSON.parse(res)
+    startCollector()
+  })
 })
 
 /////////////////////
@@ -48,19 +56,19 @@ collector.on('message', (msg, rinfo) => {
         id = obj.neighbours.node_id
       } else return
 
-      if (!nodes[id]) {
-        nodes[id] = {}
-        nodes[id].firstseen = new Date().toISOString()
+      if (!raw[id]) {
+        raw[id] = {}
+        raw[id].firstseen = new Date().toISOString()
       }
 
       if (obj.nodeinfo)
-        nodes[id].nodeinfo = obj.nodeinfo
+        raw[id].nodeinfo = obj.nodeinfo
       else if (obj.statistics)
-        nodes[id].statistics = obj.statistics
+        raw[id].statistics = obj.statistics
       else if (obj.neighbours)
-        nodes[id].neighbours = obj.neighbours
-      nodes[id].lastseen = new Date().toISOString()
-      if (obj.statistics || obj.neighbours && !nodes[id].nodeinfo) {
+        raw[id].neighbours = obj.neighbours
+      raw[id].lastseen = new Date().toISOString()
+      if (obj.statistics || obj.neighbours && !raw[id].nodeinfo) {
         retrieve('nodeinfo', rinfo.address)
       }
     }
@@ -76,12 +84,12 @@ function retrieve(stat, address) {
 }
 
 function backupData() {
-  fs.writeFile('data.json', JSON.stringify(nodes), (err) => {
+  getHosts(fs.createWriteStream('hosts'))
+
+  fs.writeFile('raw.json', JSON.stringify(raw), (err) => {
     if (err)
       return console.log(err)
   })
-
-  getHosts(fs.createWriteStream('hosts'))
 }
 
 /////////////////////
@@ -122,16 +130,24 @@ var web = http.createServer((req, stream) => {
     getGraphJson(stream)
   else if (req.url == '/metrics')
     getMetrics(stream)
-  else if (req.url == '/raw.json') {
-    stream.write(JSON.stringify(nodes))
-    stream.end()
-  } else if (req.url == '/hosts')
+  else if (req.url == '/hosts')
     getHosts(stream)
+  else if (req.url == '/raw.json') {
+    stream.write(JSON.stringify(raw))
+    stream.end()
+  } else if (req.url == '/data.json') {
+    stream.write(JSON.stringify(data))
+    stream.end()
+  } else {
+    stream.write('404')
+    stream.end()
+  }
 })
 
 function getHosts(stream) {
-  async.forEachOf(nodes, (n,k,callback1) => {
-    if (n.nodeinfo) {
+  data = getData()
+  async.forEachOf(data, (n, k, callback1) => {
+    if (_.has(n, 'nodeinfo.hostname')) {
       hostname = n.nodeinfo.hostname.toLowerCase().replace(/[^0-9a-z-_]/g,'')
       async.forEachOf(n.nodeinfo.network.addresses, (a,l,callback2) => {
         if (a.slice(0,4) != 'fe80')
@@ -163,11 +179,12 @@ function parsePeerGroup(pg) {
 }
 
 function getNodesJson(stream) {
+  data = getData()
   njson = {}
   njson.version = 2
   njson.nodes = []
   njson.timestamp = new Date().toISOString()
-  async.forEachOf(nodes, (n, k, loopCallback) => {
+  async.forEachOf(data, (n, k, loopCallback) => {
     if (n.nodeinfo) {
       node = {}
       node.nodeinfo = n.nodeinfo
@@ -175,24 +192,23 @@ function getNodesJson(stream) {
       node.flags.gateway = false
       node.flags.online = isOnline(n)
       node.statistics = {}
-      if (n.statistics) {
+      if (_.has(n, 'statistics.mesh_vpn'))
         node.flags.uplink = parsePeerGroup(n.statistics.mesh_vpn)
+      if (_.has(n, 'statistics.uptime'))
         node.statistics.uptime = n.statistics.uptime
+      if (_.has(n, 'statistics.gateway'))
         node.statistics.gateway = n.statistics.gateway
+      if (_.has(n, 'statistics.memory.total') && _.has(n, 'statistics.memory.free'))
         node.statistics.memory_usage = (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total
+      if (_.has(n, 'statistics.rootfs_usage'))
         node.statistics.rootfs_usage = n.statistics.rootfs_usage
+      if (_.has(n, 'statistics.clients.total'))
         node.statistics.clients = n.statistics.clients.total
+      if (_.has(n, 'statistics.loadavg'))
         node.statistics.loadavg = n.statistics.loadavg
-      } else {
-        node.statistics.uptime = 0
-        node.statistics.memory_usage = 0
-        node.statistics.rootfs_usage = 0
-        node.statistics.clients = 0
-        node.statistics.loadavg = 0
-      }
-      node.lastseen = n.lastseen
-      node.firstseen = n.firstseen
-        njson.nodes.push(node)
+      node.lastseen = n.lastseen ? n.lastseen : new Date().toISOString()
+      node.firstseen = n.firstseen ? n.firstseen : new Date().toISOString()
+      njson.nodes.push(node)
     }
     loopCallback()
   }, () => {
@@ -202,25 +218,26 @@ function getNodesJson(stream) {
 }
 
 function isOnline(node) {
-  return Math.abs(new Date(node.lastseen) - new Date()) < nodeinfoInterval * 3000
+  return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 3000
 }
 
 function getGraphJson(stream) {
+  data = getData()
   gjson = {}
   gjson.timestamp = new Date().toISOString()
   gjson.version = 1
   gjson.batadv = {}
   gjson.batadv.multigraph = false
-  gjson.batadv.directed = false
+  gjson.batadv.directed = true
   gjson.batadv.nodes = []
   gjson.batadv.links = []
   gjson.batadv.graph = null
   nodetable = {}
   counter = 0
-  async.forEachOf(nodes, (n, k, callback1) => {
-    if (n.neighbours && isOnline(n)) {
+  async.forEachOf(data, (n, k, callback1) => {
+    if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
       nodeentry = {}
-      nodeentry.node_id = n.neighbours.node_id
+      nodeentry.node_id = k
       for (mac in n.neighbours.batadv) {
         nodeentry.id = mac
         nodetable[mac] = counter
@@ -230,19 +247,20 @@ function getGraphJson(stream) {
     }
     callback1()
   }, () => {
-    async.forEachOf(nodes, (n, k, callback2) => {
-      if (n.neighbours && isOnline(n)) {
+    async.forEachOf(data, (n, k, callback2) => {
+      if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
         for (src in n.neighbours.batadv) {
-          for (dest in n.neighbours.batadv[src].neighbours) {
-            link = {}
-            link.source = nodetable[src]
-            link.target = nodetable[dest]
-            link.tq = 255 / n.neighbours.batadv[src].neighbours[dest].tq
-            link.bidirect = false
-            link.vpn = false
-            if (link.source && link.target)
-            gjson.batadv.links.push(link)
-          }
+          if (_.has(n.neighbours.batadv[src], 'neighbours'))
+            for (dest in n.neighbours.batadv[src].neighbours) {
+              link = {}
+              link.source = nodetable[src]
+              link.target = nodetable[dest]
+              tq = n.neighbours.batadv[src].neighbours[dest].tq
+              link.tq = 255 / (tq ? tq : 1)
+              link.vpn = n.flags ? n.flags.vpn : false
+              if (link.source && link.target)
+                gjson.batadv.links.push(link)
+            }
         }
       }
       callback2()
@@ -256,6 +274,7 @@ function getGraphJson(stream) {
 //Prometheus metrics
 
 function getMetrics(stream) {
+  data = getData()
   counter_meshnodes_online_total = 0
   counter_total_traffic_rx = 0
   counter_total_traffic_mgmt_rx = 0
@@ -263,28 +282,42 @@ function getMetrics(stream) {
   counter_total_traffic_mgmt_tx = 0
   counter_total_traffic_forward = 0
   counter_total_clients = 0
-  async.forEachOf(nodes, (n, k, loopCallback) => {
-    if (n.nodeinfo && isOnline(n)) {
+  async.forEachOf(data, (n, k, loopCallback) => {
+    if (isOnline(n)) {
       counter_meshnodes_online_total++
-      if(n.statistics) {
-        stream.write('meshnode_clients{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.clients.total + '\n')
-        stream.write('meshnode_uptime{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.uptime + '\n')
-        stream.write('meshnode_traffic_rx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.rx.bytes + '\n')
-        stream.write('meshnode_traffic_rx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_rx.bytes + '\n')
-        stream.write('meshnode_traffic_tx{type="traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.tx.bytes + '\n')
-        stream.write('meshnode_traffic_tx{type="mgmt_traffic",hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.mgmt_tx.bytes + '\n')
-        stream.write('meshnode_traffic_forward{hostname="' + n.nodeinfo.hostname + '",nodeid="' + n.nodeinfo.node_id + '"} ' + n.statistics.traffic.forward.bytes + '\n')
-        counter_total_traffic_rx += n.statistics.traffic.rx.bytes
-        counter_total_traffic_mgmt_rx += n.statistics.traffic.mgmt_rx.bytes
-        counter_total_traffic_tx += n.statistics.traffic.tx.bytes
-        counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
-        counter_total_traffic_forward += n.statistics.traffic.forward.bytes
-        counter_total_clients += n.statistics.clients.total
+      if (_.has(n, 'nodeinfo.hostname') && isOnline(n)) {
+        id = 'hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"'
+        if (_.has(n, 'statistics.clients.total'))
+          stream.write('meshnode_clients{' + id + '} ' + n.statistics.clients.total + '\n')
+        if (_.has(n, 'statistics.uptime'))
+          stream.write('meshnode_uptime{' + id + '} ' + n.statistics.uptime + '\n')
+        if (_.has(n, 'statistics.traffic.rx.bytes'))
+          stream.write('meshnode_traffic_rx{type="traffic",' + id + '} ' + n.statistics.traffic.rx.bytes + '\n')
+        if (_.has(n, 'statistics.traffic.mgmt_rx.bytes'))
+          stream.write('meshnode_traffic_rx{type="mgmt_traffic",' + id + '} ' + n.statistics.traffic.mgmt_rx.bytes + '\n')
+        if (_.has(n, 'statistics.traffic.tx.bytes'))
+          stream.write('meshnode_traffic_tx{type="traffic",' + id + '} ' + n.statistics.traffic.tx.bytes + '\n')
+        if (_.has(n, 'statistics.traffic.mgmt_tx.bytes'))
+          stream.write('meshnode_traffic_tx{type="mgmt_traffic",' + id + '} ' + n.statistics.traffic.mgmt_tx.bytes + '\n')
+        if (_.has(n, 'statistics.traffic.forward.bytes'))
+          stream.write('meshnode_traffic_forward{' + id + '} ' + n.statistics.traffic.forward.bytes + '\n')
       }
+      if (_.has(n, 'statistics.traffic.rx.bytes'))
+        counter_total_traffic_rx += n.statistics.traffic.rx.bytes
+      if (_.has(n, 'statistics.traffic.mgmt_rx.bytes'))
+        counter_total_traffic_mgmt_rx += n.statistics.traffic.mgmt_rx.bytes
+      if (_.has(n, 'statistics.traffic.tx.bytes'))
+        counter_total_traffic_tx += n.statistics.traffic.tx.bytes
+      if (_.has(n, 'statistics.traffic.mgmt_tx.bytes'))
+        counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
+      if (_.has(n, 'statistics.traffic.forward.bytes'))
+        counter_total_traffic_forward += n.statistics.traffic.forward.bytes
+      if (_.has(n, 'statistics.clients.total'))
+        counter_total_clients += n.statistics.clients.total
     }
     loopCallback()
   }, () => {
-    stream.write('meshnodes_total ' + Object.keys(nodes).length + '\n')
+    stream.write('meshnodes_total ' + Object.keys(data).length + '\n')
     stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
     stream.write('total_clients ' + counter_total_clients + '\n')
     stream.write('total_traffic_rx ' + counter_total_traffic_rx + '\n')
