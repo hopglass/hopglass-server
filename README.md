@@ -5,9 +5,12 @@ How to use
 ----------
 
 Setup is easy:
+
 1. Be sure to have nodejs and npm installed
-2. Install dependencies: `npm install`
-3. Start the server: `node hopglass.js [args]`
+2. Install dependencies:
+   `npm install`
+3. Start the server:
+   `node hopglass.js [args]`
 
 The following arguments can be supplied:
 
@@ -29,5 +32,32 @@ Possible webserver queries
 |--------------|---|
 |/nodes.json   |Meshviewer nodes.json v2|
 |/graph.json   |Meshviewer graph.json v1|
+|/raw.json     |raw data collected, same as the `raw.json` save file|
 |/hosts        |hosts file|
 |/metrics      |Prometheus metrics (currently gluon-collector-style, might change)|
+
+Metrics values
+--------------
+
+per node (all with labels `hostname` and `nodeid`):
+
+- statistics.clients.total
+- statistics.uptime
+- statistics.traffic.rx.bytes
+- statistics.traffic.mgmt_rx.bytes
+- statistics.traffic.tx.bytes
+- statistics.traffic.mgmt_tx.bytes
+- statistics.traffic.forward.bytes
+- statistics.loadavg
+- statistics.memory_usage
+
+total values:
+
+- meshnodes_total
+- meshnodes_online_total
+- total_clients
+- total_traffic_rx
+- total_traffic_mgmt_rx
+- total_traffic_tx
+- total_traffic_mgmt_tx
+- total_traffic_forward

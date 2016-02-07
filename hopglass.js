@@ -275,56 +275,54 @@ function getGraphJson(stream) {
 
 function getMetrics(stream) {
   data = getData()
+  save = (n, id, stream, what, where) => {
+    if (_.has(n, what))
+      stream.write((where ? where : what) + id + ' ' +  _.get(n, what) + '\n')
+  }
+  count = (n, counter, what) => {
+    if (_.has(n, what))
+      counter += _.get(n, what)
+  }
   counter_meshnodes_online_total = 0
-  counter_total_traffic_rx = 0
-  counter_total_traffic_mgmt_rx = 0
-  counter_total_traffic_tx = 0
-  counter_total_traffic_mgmt_tx = 0
-  counter_total_traffic_forward = 0
-  counter_total_clients = 0
+  counter_traffic_rx = 0
+  counter_traffic_mgmt_rx = 0
+  counter_traffic_tx = 0
+  counter_traffic_mgmt_tx = 0
+  counter_traffic_forward = 0
+  counter_clients = 0
   async.forEachOf(data, (n, k, loopCallback) => {
     if (isOnline(n)) {
       counter_meshnodes_online_total++
       if (_.has(n, 'nodeinfo.hostname') && isOnline(n)) {
-        id = 'hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"'
-        if (_.has(n, 'statistics.clients.total'))
-          stream.write('meshnode_clients{' + id + '} ' + n.statistics.clients.total + '\n')
-        if (_.has(n, 'statistics.uptime'))
-          stream.write('meshnode_uptime{' + id + '} ' + n.statistics.uptime + '\n')
-        if (_.has(n, 'statistics.traffic.rx.bytes'))
-          stream.write('meshnode_traffic_rx{type="traffic",' + id + '} ' + n.statistics.traffic.rx.bytes + '\n')
-        if (_.has(n, 'statistics.traffic.mgmt_rx.bytes'))
-          stream.write('meshnode_traffic_rx{type="mgmt_traffic",' + id + '} ' + n.statistics.traffic.mgmt_rx.bytes + '\n')
-        if (_.has(n, 'statistics.traffic.tx.bytes'))
-          stream.write('meshnode_traffic_tx{type="traffic",' + id + '} ' + n.statistics.traffic.tx.bytes + '\n')
-        if (_.has(n, 'statistics.traffic.mgmt_tx.bytes'))
-          stream.write('meshnode_traffic_tx{type="mgmt_traffic",' + id + '} ' + n.statistics.traffic.mgmt_tx.bytes + '\n')
-        if (_.has(n, 'statistics.traffic.forward.bytes'))
-          stream.write('meshnode_traffic_forward{' + id + '} ' + n.statistics.traffic.forward.bytes + '\n')
+        id = '{hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"}'
+        save(n, id, stream, 'statistics.clients.total')
+        save(n, id, stream, 'statistics.uptime')
+        save(n, id, stream, 'statistics.traffic.rx.bytes')
+        save(n, id, stream, 'statistics.traffic.mgmt_rx.bytes')
+        save(n, id, stream, 'statistics.traffic.tx.bytes')
+        save(n, id, stream, 'statistics.traffic.mgmt_tx.bytes')
+        save(n, id, stream, 'statistics.traffic.forward.bytes')
+        save(n, id, stream, 'statistics.loadavg')
+        if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
+          stream.write('statistics.memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
       }
-      if (_.has(n, 'statistics.traffic.rx.bytes'))
-        counter_total_traffic_rx += n.statistics.traffic.rx.bytes
-      if (_.has(n, 'statistics.traffic.mgmt_rx.bytes'))
-        counter_total_traffic_mgmt_rx += n.statistics.traffic.mgmt_rx.bytes
-      if (_.has(n, 'statistics.traffic.tx.bytes'))
-        counter_total_traffic_tx += n.statistics.traffic.tx.bytes
-      if (_.has(n, 'statistics.traffic.mgmt_tx.bytes'))
-        counter_total_traffic_mgmt_tx += n.statistics.traffic.mgmt_tx.bytes
-      if (_.has(n, 'statistics.traffic.forward.bytes'))
-        counter_total_traffic_forward += n.statistics.traffic.forward.bytes
-      if (_.has(n, 'statistics.clients.total'))
-        counter_total_clients += n.statistics.clients.total
+      count(n, counter_traffic_rx, 'statistics.traffic.rx.bytes')
+      count(n, counter_traffic_mgmt_rx, 'statistics.traffic.mgmt_rx.bytes')
+      count(n, counter_traffic_tx, 'statistics.traffic.tx.bytes')
+      count(n, counter_traffic_mgmt_tx, 'statistics.traffic.mgmt_tx.bytes')
+      count(n, counter_traffic_forward, 'statistics.traffic.forward.bytes')
+      count(n, counter_clients, 'statistics.clients.total')
     }
     loopCallback()
   }, () => {
     stream.write('meshnodes_total ' + Object.keys(data).length + '\n')
     stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
-    stream.write('total_clients ' + counter_total_clients + '\n')
-    stream.write('total_traffic_rx ' + counter_total_traffic_rx + '\n')
-    stream.write('total_traffic_mgmt_rx ' + counter_total_traffic_mgmt_rx + '\n')
-    stream.write('total_traffic_tx ' + counter_total_traffic_tx + '\n')
-    stream.write('total_traffic_mgmt_tx ' + counter_total_traffic_mgmt_tx + '\n')
-    stream.write('total_traffic_forward ' + counter_total_traffic_forward + '\n')
+    stream.write('total_clients ' + counter_clients + '\n')
+    stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
+    stream.write('total_traffic_mgmt_rx ' + counter_traffic_mgmt_rx + '\n')
+    stream.write('total_traffic_tx ' + counter_traffic_tx + '\n')
+    stream.write('total_traffic_mgmt_tx ' + counter_traffic_mgmt_tx + '\n')
+    stream.write('total_traffic_forward ' + counter_traffic_forward + '\n')
     stream.end()
   })
 }
