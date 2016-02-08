@@ -310,7 +310,7 @@ function getMetrics(stream) {
   data = getData()
   save = (n, id, stream, what, where) => {
     if (_.has(n, what))
-      stream.write((where ? where : what) + id + ' ' +  _.get(n, what) + '\n')
+      stream.write((where ? where : what.replace('.', '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
   count = (n, counter, what) => {
     if (_.has(n, what))
