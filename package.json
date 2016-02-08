@@ -5,6 +5,7 @@
   "main": "hopglass.js",
   "dependencies": {
     "async": "^1.5.2",
+    "lodash": "^4.2.1",
     "minimist": "^1.2.0"
   },
   "devDependencies": {},
