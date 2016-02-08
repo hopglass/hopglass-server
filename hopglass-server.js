@@ -310,7 +310,7 @@ function getMetrics(stream) {
   data = getData()
   save = (n, id, stream, what, where) => {
     if (_.has(n, what))
-      stream.write((where ? where : what) + id + ' ' +  _.get(n, what) + '\n')
+      stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
   count = (n, counter, what) => {
     if (_.has(n, what))
@@ -337,7 +337,7 @@ function getMetrics(stream) {
         save(n, id, stream, 'statistics.traffic.forward.bytes')
         save(n, id, stream, 'statistics.loadavg')
         if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
-          stream.write('statistics.memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
+          stream.write('statistics_memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
       }
       count(n, counter_traffic_rx, 'statistics.traffic.rx.bytes')
       count(n, counter_traffic_mgmt_rx, 'statistics.traffic.mgmt_rx.bytes')
