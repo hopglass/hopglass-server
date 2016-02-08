@@ -128,6 +128,8 @@ var web = http.createServer((req, stream) => {
     getNodesJson(stream)
   else if (req.url == '/graph.json')
     getGraphJson(stream)
+  else if (req.url == '/nodelist.json')
+    getNodelistJson(stream)
   else if (req.url == '/metrics')
     getMetrics(stream)
   else if (req.url == '/hosts')
@@ -268,6 +270,37 @@ function getGraphJson(stream) {
       stream.write(JSON.stringify(gjson))
       stream.end()
     })
+  })
+}
+
+//nodelist.json (yet another format)
+function getNodelistJson(stream) {
+  data = getData()
+  nl = {}
+  nl.version = "1.0.0"
+  nl.updated_at = new Date().toISOString()
+  nl.nodes = []
+  async.forEachOf(data, (n, k, callback) => {
+    node = {}
+    node.id = k
+    if (_.has(n, 'nodeinfo.hostname'))
+      node.name = _.get(n, 'nodeinfo.hostname')
+    node.status = {}
+    node.status.lastcontact = n.lastseen ? n.lastseen : new Date().toISOString()
+    node.status.firstcontact = n.firstseen ? n.lastseen : new Date().toISOString()
+    node.status.online = isOnline(n)
+    if (_.has(n, 'statistics.clients.total'))
+      node.status.clients = _.get(n, 'statistics.clients.total')
+    if (_.has(n, 'nodeinfo.location.latitude') && _.has(n, 'nodeinfo.location.longitude')) {
+      node.position = {}
+      node.position.lat = n.nodeinfo.location.latitude
+      node.position.long = n.nodeinfo.location.longitude
+    }
+    nl.nodes.push(node)
+    callback()
+  }, () => {
+    stream.write(JSON.stringify(nl))
+    stream.end()
   })
 }
 
