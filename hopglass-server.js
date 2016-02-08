@@ -312,9 +312,11 @@ function getMetrics(stream) {
     if (_.has(n, what))
       stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
-  count = (n, counter, what) => {
+  get = (n, what) => {
     if (_.has(n, what))
-      counter += _.get(n, what)
+      return _.get(n, what)
+    else
+      return 0;
   }
   counter_meshnodes_online_total = 0
   counter_traffic_rx = 0
@@ -339,12 +341,12 @@ function getMetrics(stream) {
         if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
           stream.write('statistics_memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
       }
-      count(n, counter_traffic_rx, 'statistics.traffic.rx.bytes')
-      count(n, counter_traffic_mgmt_rx, 'statistics.traffic.mgmt_rx.bytes')
-      count(n, counter_traffic_tx, 'statistics.traffic.tx.bytes')
-      count(n, counter_traffic_mgmt_tx, 'statistics.traffic.mgmt_tx.bytes')
-      count(n, counter_traffic_forward, 'statistics.traffic.forward.bytes')
-      count(n, counter_clients, 'statistics.clients.total')
+      counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
+      counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
+      counter_traffic_tx += get(n, 'statistics.traffic.tx.bytes')
+      counter_traffic_mgmt_tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
+      counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
+      counter_clients += get(n, 'statistics.clients.total')
     }
     loopCallback()
   }, () => {
