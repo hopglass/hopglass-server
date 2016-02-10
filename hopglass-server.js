@@ -11,6 +11,7 @@ var argv = require('minimist')(process.argv.slice(2))
 var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
 var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
 var collectorport = argv.collectorport ? argv.collectorport : 45123
+var webip = argv.webip
 var webport = argv.webport ? argv.webport : 4000
 var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : 'bat0']
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
@@ -365,7 +366,7 @@ function getMetrics(stream) {
 // start webserver //
 /////////////////////
  
-web.listen(webport, () => {
+web.listen(webport, webip, () => {
   console.log('webserver listening on port ' + webport)
 })
 
