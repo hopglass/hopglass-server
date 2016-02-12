@@ -18,6 +18,8 @@ var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : '
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
 var targetport = argv.targetport ? argv.targetport : 1001
 
+argv = undefined
+
 var raw = {}
 var aliases = {}
 
@@ -169,9 +171,9 @@ function getHosts(stream) {
 //MV jsons
 
 function parsePeerGroup(pg) {
-  for (let i of pg) {
+  for (let i in pg) {
     if (i == 'peers') {
-      for (let j of pg[i]) {
+      for (let j in pg[i]) {
         if (pg[i][j])
           return true
       }
@@ -242,7 +244,7 @@ function getGraphJson(stream) {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
       var nodeentry = {}
       nodeentry.node_id = k
-      for (mac in n.neighbours.batadv) {
+      for (let mac in n.neighbours.batadv) {
         nodeentry.id = mac
         nodetable[mac] = counter
       }
@@ -253,9 +255,9 @@ function getGraphJson(stream) {
   }, () => {
     async.forEachOf(data, (n, k, callback2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-        for (let src of n.neighbours.batadv) {
+        for (let src in n.neighbours.batadv) {
           if (_.has(n.neighbours.batadv[src], 'neighbours'))
-            for (let dest of n.neighbours.batadv[src].neighbours) {
+            for (let dest in n.neighbours.batadv[src].neighbours) {
               var link = {}
               link.source = nodetable[src]
               link.target = nodetable[dest]
@@ -310,11 +312,11 @@ function getNodelistJson(stream) {
 
 function getMetrics(stream) {
   var data = getData()
-  save = (n, id, stream, what, where) => {
+  var save = (n, id, stream, what, where) => {
     if (_.has(n, what))
       stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
-  get = (n, what) => {
+  var get = (n, what) => {
     if (_.has(n, what))
       return _.get(n, what)
     else
