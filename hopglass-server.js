@@ -1,3 +1,5 @@
+"use strict";
+
 var dgram = require('dgram')
 var collector = dgram.createSocket('udp6')
 var zlib = require('zlib')
@@ -16,8 +18,10 @@ var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : '
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
 var targetport = argv.targetport ? argv.targetport : 1001
 
-raw = {}
-aliases = {}
+argv = undefined
+
+var raw = {}
+var aliases = {}
 
 function getData() {
   return _.merge({}, raw, aliases)
@@ -47,7 +51,8 @@ collector.on('message', (msg, rinfo) => {
     if (err) {
       console.log('ERR: ' + err)
     } else {
-      obj = JSON.parse(res)
+      var obj = JSON.parse(res)
+      var id
       if (obj.nodeinfo) {
         id = obj.nodeinfo.node_id
       } else if (obj.statistics) {
@@ -76,8 +81,8 @@ collector.on('message', (msg, rinfo) => {
 })
 
 function retrieve(stat, address) {
-  ip = address ? address : targetip
-  req = new Buffer('GET ' + stat)
+  var ip = address ? address : targetip
+  var req = new Buffer('GET ' + stat)
   ifaces.forEach((iface) => {
     collector.send(req, 0, req.length, targetport, ip + '%' + iface)
   })
@@ -147,10 +152,10 @@ var web = http.createServer((req, stream) => {
 })
 
 function getHosts(stream) {
-  data = getData()
+  var data = getData()
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'nodeinfo.hostname')) {
-      hostname = n.nodeinfo.hostname.toLowerCase().replace(/[^0-9a-z-_]/g,'')
+      var hostname = n.nodeinfo.hostname.toLowerCase().replace(/[^0-9a-z-_]/g,'')
       async.forEachOf(n.nodeinfo.network.addresses, (a,l,callback2) => {
         if (a.slice(0,4) != 'fe80')
           stream.write((a + ' ' + hostname) + '\n')
@@ -166,9 +171,9 @@ function getHosts(stream) {
 //MV jsons
 
 function parsePeerGroup(pg) {
-  for (i in pg) {
+  for (let i in pg) {
     if (i == 'peers') {
-      for (j in pg[i]) {
+      for (let j in pg[i]) {
         if (pg[i][j])
           return true
       }
@@ -181,14 +186,14 @@ function parsePeerGroup(pg) {
 }
 
 function getNodesJson(stream) {
-  data = getData()
-  njson = {}
+  var data = getData()
+  var njson = {}
   njson.version = 2
   njson.nodes = []
   njson.timestamp = new Date().toISOString()
   async.forEachOf(data, (n, k, loopCallback) => {
     if (n.nodeinfo) {
-      node = {}
+      var node = {}
       node.nodeinfo = n.nodeinfo
       node.flags = {}
       node.flags.gateway = _.get(n, 'flags.gateway', false)
@@ -223,8 +228,8 @@ function isOnline(node) {
 }
 
 function getGraphJson(stream) {
-  data = getData()
-  gjson = {}
+  var data = getData()
+  var gjson = {}
   gjson.timestamp = new Date().toISOString()
   gjson.version = 1
   gjson.batadv = {}
@@ -233,13 +238,13 @@ function getGraphJson(stream) {
   gjson.batadv.nodes = []
   gjson.batadv.links = []
   gjson.batadv.graph = null
-  nodetable = {}
-  counter = 0
+  var nodetable = {}
+  var counter = 0
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-      nodeentry = {}
+      var nodeentry = {}
       nodeentry.node_id = k
-      for (mac in n.neighbours.batadv) {
+      for (let mac in n.neighbours.batadv) {
         nodeentry.id = mac
         nodetable[mac] = counter
       }
@@ -250,13 +255,13 @@ function getGraphJson(stream) {
   }, () => {
     async.forEachOf(data, (n, k, callback2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-        for (src in n.neighbours.batadv) {
+        for (let src in n.neighbours.batadv) {
           if (_.has(n.neighbours.batadv[src], 'neighbours'))
-            for (dest in n.neighbours.batadv[src].neighbours) {
-              link = {}
+            for (let dest in n.neighbours.batadv[src].neighbours) {
+              var link = {}
               link.source = nodetable[src]
               link.target = nodetable[dest]
-              tq = n.neighbours.batadv[src].neighbours[dest].tq
+              var tq = n.neighbours.batadv[src].neighbours[dest].tq
               link.tq = 255 / (tq ? tq : 1)
               link.vpn = n.flags ? n.flags.vpn : false
               if (link.source && link.target)
@@ -274,13 +279,13 @@ function getGraphJson(stream) {
 
 //nodelist.json (yet another format)
 function getNodelistJson(stream) {
-  data = getData()
-  nl = {}
+  var data = getData()
+  var nl = {}
   nl.version = "1.0.0"
   nl.updated_at = new Date().toISOString()
   nl.nodes = []
   async.forEachOf(data, (n, k, callback) => {
-    node = {}
+    var node = {}
     node.id = k
     if (_.has(n, 'nodeinfo.hostname'))
       node.name = _.get(n, 'nodeinfo.hostname')
@@ -306,29 +311,29 @@ function getNodelistJson(stream) {
 //Prometheus metrics
 
 function getMetrics(stream) {
-  data = getData()
-  save = (n, id, stream, what, where) => {
+  var data = getData()
+  var save = (n, id, stream, what, where) => {
     if (_.has(n, what))
       stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
-  get = (n, what) => {
+  var get = (n, what) => {
     if (_.has(n, what))
       return _.get(n, what)
     else
       return 0;
   }
-  counter_meshnodes_online_total = 0
-  counter_traffic_rx = 0
-  counter_traffic_mgmt_rx = 0
-  counter_traffic_tx = 0
-  counter_traffic_mgmt_tx = 0
-  counter_traffic_forward = 0
-  counter_clients = 0
+  var counter_meshnodes_online_total = 0
+  var counter_traffic_rx = 0
+  var counter_traffic_mgmt_rx = 0
+  var counter_traffic_tx = 0
+  var counter_traffic_mgmt_tx = 0
+  var counter_traffic_forward = 0
+  var counter_clients = 0
   async.forEachOf(data, (n, k, loopCallback) => {
     if (isOnline(n)) {
       counter_meshnodes_online_total++
       if (_.has(n, 'nodeinfo.hostname') && isOnline(n)) {
-        id = '{hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"}'
+        var id = '{hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"}'
         save(n, id, stream, 'statistics.clients.total')
         save(n, id, stream, 'statistics.uptime')
         save(n, id, stream, 'statistics.traffic.rx.bytes')
