@@ -236,6 +236,7 @@ function getGraphJson(stream) {
   gjson.batadv.links = []
   gjson.batadv.graph = null
   nodetable = {}
+  typetable = {}
   counter = 0
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
@@ -248,19 +249,27 @@ function getGraphJson(stream) {
       gjson.batadv.nodes.push(nodeentry)
       counter++
     }
+    if (_.has(n, 'nodeinfo.network.mesh'))
+      for (bat in n.nodeinfo.network.mesh) {
+        for (type in n.nodeinfo.network.mesh[bat].interfaces) {
+          n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+            typetable[d] = type
+          })
+        }
+      }
     callback1()
   }, () => {
     async.forEachOf(data, (n, k, callback2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-        for (src in n.neighbours.batadv) {
-          if (_.has(n.neighbours.batadv[src], 'neighbours'))
-            for (dest in n.neighbours.batadv[src].neighbours) {
+        for (dest in n.neighbours.batadv) {
+          if (_.has(n.neighbours.batadv[dest], 'neighbours'))
+            for (src in n.neighbours.batadv[dest].neighbours) {
               link = {}
               link.source = nodetable[src]
               link.target = nodetable[dest]
-              tq = n.neighbours.batadv[src].neighbours[dest].tq
+              tq = n.neighbours.batadv[dest].neighbours[src].tq
               link.tq = 255 / (tq ? tq : 1)
-              link.vpn = n.flags ? n.flags.vpn : false
+              link.type = typetable[dest]
               if (link.source && link.target)
                 gjson.batadv.links.push(link)
             }
