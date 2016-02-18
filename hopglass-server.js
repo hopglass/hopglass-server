@@ -207,6 +207,8 @@ function getNodesJson(stream) {
       node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
       if (_.has(n, 'statistics.loadavg'))
         node.statistics.loadavg = n.statistics.loadavg
+      if (_.has(n, 'statistics.gateway'))
+        node.statistics.gateway = n.statistics.gateway
       node.lastseen = n.lastseen ? n.lastseen : new Date().toISOString()
       node.firstseen = n.firstseen ? n.firstseen : new Date().toISOString()
       njson.nodes.push(node)
