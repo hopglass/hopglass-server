@@ -203,7 +203,7 @@ function getNodesJson(stream) {
            / _.get(n, 'statistics.memory.total', 0)
       node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
       node.statistics.clients = _.get(n, 'statistics.clients.total')
-      node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+      node.statistics.loadavg = _.get(n, 'statistics.loadavg', 0)
       node.lastseen = _.get(n, 'firstseen', new Date().toISOString())
       node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
       njson.nodes.push(node)
