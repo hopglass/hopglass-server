@@ -130,6 +130,8 @@ var web = http.createServer((req, stream) => {
     getGraphJson(stream)
   else if (req.url == '/nodelist.json')
     getNodelistJson(stream)
+  else if (req.url == '/ffmap.json')
+    getFfmapJson(stream)
   else if (req.url == '/metrics')
     getMetrics(stream)
   else if (req.url == '/hosts')
@@ -304,6 +306,75 @@ function getNodelistJson(stream) {
   }, () => {
     stream.write(JSON.stringify(nl))
     stream.end()
+  })
+}
+
+//ffmap-d3
+function getFfmapJson(stream) {
+  data = getData()
+  ffmapJson = {}
+  ffmapJson.meta = {}
+  ffmapJson.meta.timestamp = new Date().toISOString().slice(0, 19)
+  ffmapJson.nodes = []
+  ffmapJson.links = []
+  nodeTable = {}
+  typeTable = {}
+  counter = 0
+  async.forEachOf(data, (n, k, callback1) => {
+    node = {}
+    node.id = _.get(n, 'nodeinfo.network.mac')
+    node.name = _.get(n, 'nodeinfo.hostname')
+    node.flags = {"gateway": false, "online": isOnline(n)}
+    node.clientcount = _.get(n, 'statistics.clients.total', 0)
+    node.firmware = _.get(n, 'nodeinfo.software.firmware.release')
+    if (_.has(n, 'nodeinfo.location.latitude') && _.has(n, 'nodeinfo.location.longitude')) {
+      node.geo = []
+      node.geo.push(_.get(n, 'nodeinfo.location.latitude', 0))
+      node.geo.push(_.get(n, 'nodeinfo.location.longitude', 0))
+    } else
+      node.geo = null
+    if (_.has(n, 'neighbours.batadv') && isOnline(n))
+      for (mac in n.neighbours.batadv) {
+        nodeTable[mac] = counter
+      }
+    if (_.has(n, 'nodeinfo.network.mesh'))
+      for (bat in n.nodeinfo.network.mesh) {
+        for (type in n.nodeinfo.network.mesh[bat].interfaces) {
+          n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+            typeTable[d] = type
+          })
+        }
+      }
+    ffmapJson.nodes.push(node)
+    counter++
+    callback1()
+  }, () => {
+    async.forEachOf(data, (n, k, callback2) => {
+      if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
+        for (dest in n.neighbours.batadv) {
+          if (_.has(n.neighbours.batadv[dest], 'neighbours'))
+            for (src in n.neighbours.batadv[dest].neighbours) {
+              link = {}
+              link.source = nodeTable[src]
+              link.target = nodeTable[dest]
+              tq = n.neighbours.batadv[dest].neighbours[src].tq
+              link.quality = (255 / (tq ? tq : 1)) + ", " + (255 / (tq ? tq : 1))
+              link.type = typeTable[dest] === "tunnel" ? "vpn" : null
+              link.id = src + "-" + dest
+              if (!isNaN(link.source) && !isNaN(link.target))
+                ffmapJson.links.push(link)
+            }
+        }
+      }
+      callback2()
+    }, () => {
+      ffmapJson.links = _.uniqWith(ffmapJson.links, (a, b) => {
+        return ((a.source == b.source && a.target == b.target) ||
+                (a.source == b.target && a.target == b.source))
+      })
+      stream.write(JSON.stringify(ffmapJson))
+      stream.end()
+    })
   })
 }
 
