@@ -13,6 +13,7 @@ var argv = require('minimist')(process.argv.slice(2))
 var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
 var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
 var collectorport = argv.collectorport ? argv.collectorport : 45123
+var webip = argv.webip ? argv.webip : "::"
 var webport = argv.webport ? argv.webport : 4000
 var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : 'bat0']
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
@@ -136,6 +137,8 @@ var web = http.createServer((req, stream) => {
     getGraphJson(stream)
   else if (req.url == '/nodelist.json')
     getNodelistJson(stream)
+  else if (req.url == '/ffmap.json')
+    getFfmapJson(stream)
   else if (req.url == '/metrics')
     getMetrics(stream)
   else if (req.url == '/hosts')
@@ -187,10 +190,10 @@ function parsePeerGroup(pg) {
 
 function getNodesJson(stream) {
   getData()
-  var njson = {}
-  njson.version = 2
-  njson.nodes = []
-  njson.timestamp = new Date().toISOString()
+  var nJson = {}
+  nJson.version = 2
+  nJson.nodes = []
+  nJson.timestamp = new Date().toISOString()
   async.forEachOf(data, (n, k, loopCallback) => {
     if (n.nodeinfo) {
       var node = {}
@@ -210,13 +213,13 @@ function getNodesJson(stream) {
       node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
       node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
       node.statistics.loadavg = _.get(n, 'statistics.loadavg')
-      node.lastseen = _.get(n, 'firstseen', new Date().toISOString())
+      node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
       node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
-      njson.nodes.push(node)
+      nJson.nodes.push(node)
     }
     loopCallback()
   }, () => {
-    stream.write(JSON.stringify(njson))
+    stream.write(JSON.stringify(nJson))
     stream.end()
   })
 }
@@ -227,17 +230,17 @@ function isOnline(node) {
 
 function getGraphJson(stream) {
   getData()
-  var gjson = {}
-  gjson.timestamp = new Date().toISOString()
-  gjson.version = 1
-  gjson.batadv = {}
-  gjson.batadv.multigraph = false
-  gjson.batadv.directed = true
-  gjson.batadv.nodes = []
-  gjson.batadv.links = []
-  gjson.batadv.graph = null
-  var nodetable = {}
-  var typetable = {}
+  var gJson = {}
+  gJson.timestamp = new Date().toISOString()
+  gJson.version = 1
+  gJson.batadv = {}
+  gJson.batadv.multigraph = false
+  gJson.batadv.directed = true
+  gJson.batadv.nodes = []
+  gJson.batadv.links = []
+  gJson.batadv.graph = null
+  var nodeTable = {}
+  var typeTable = {}
   var counter = 0
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
@@ -245,16 +248,16 @@ function getGraphJson(stream) {
       nodeentry.node_id = k
       for (let mac in n.neighbours.batadv) {
         nodeentry.id = mac
-        nodetable[mac] = counter
+        nodeTable[mac] = counter
       }
-      gjson.batadv.nodes.push(nodeentry)
+      gJson.batadv.nodes.push(nodeentry)
       counter++
     }
     if (_.has(n, 'nodeinfo.network.mesh'))
       for (let bat in n.nodeinfo.network.mesh) {
         for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
           n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
-            typetable[d] = type
+            typeTable[d] = type
           })
         }
       }
@@ -266,19 +269,19 @@ function getGraphJson(stream) {
           if (_.has(n.neighbours.batadv[dest], 'neighbours'))
             for (let src in n.neighbours.batadv[dest].neighbours) {
               var link = {}
-              link.source = nodetable[src]
-              link.target = nodetable[dest]
+              link.source = nodeTable[src]
+              link.target = nodeTable[dest]
               var tq = n.neighbours.batadv[dest].neighbours[src].tq
               link.tq = 255 / (tq ? tq : 1)
-              link.type = typetable[dest]
+              link.type = typeTable[dest]
               if (!isNaN(link.source) && !isNaN(link.target))
-                gjson.batadv.links.push(link)
+                gJson.batadv.links.push(link)
             }
         }
       }
       callback2()
     }, () => {
-      stream.write(JSON.stringify(gjson))
+      stream.write(JSON.stringify(gJson))
       stream.end()
     })
   })
@@ -313,6 +316,75 @@ function getNodelistJson(stream) {
   })
 }
 
+//ffmap-d3
+function getFfmapJson(stream) {
+  getData()
+  var ffmapJson = {}
+  ffmapJson.meta = {}
+  ffmapJson.meta.timestamp = new Date().toISOString().slice(0, 19)
+  ffmapJson.nodes = []
+  ffmapJson.links = []
+  var nodeTable = {}
+  var typeTable = {}
+  var counter = 0
+  async.forEachOf(data, (n, k, callback1) => {
+    var node = {}
+    node.id = _.get(n, 'nodeinfo.network.mac')
+    node.name = _.get(n, 'nodeinfo.hostname')
+    node.flags = {"gateway": false, "online": isOnline(n)}
+    node.clientcount = _.get(n, 'statistics.clients.total', 0)
+    node.firmware = _.get(n, 'nodeinfo.software.firmware.release')
+    if (_.has(n, 'nodeinfo.location.latitude') && _.has(n, 'nodeinfo.location.longitude')) {
+      node.geo = []
+      node.geo.push(_.get(n, 'nodeinfo.location.latitude', 0))
+      node.geo.push(_.get(n, 'nodeinfo.location.longitude', 0))
+    } else
+      node.geo = null
+    if (_.has(n, 'neighbours.batadv') && isOnline(n))
+      for (let mac in n.neighbours.batadv) {
+        nodeTable[mac] = counter
+      }
+    if (_.has(n, 'nodeinfo.network.mesh'))
+      for (let bat in n.nodeinfo.network.mesh) {
+        for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+          n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+            typeTable[d] = type
+          })
+        }
+      }
+    ffmapJson.nodes.push(node)
+    counter++
+    callback1()
+  }, () => {
+    async.forEachOf(data, (n, k, callback2) => {
+      if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
+        for (let dest in n.neighbours.batadv) {
+          if (_.has(n.neighbours.batadv[dest], 'neighbours'))
+            for (let src in n.neighbours.batadv[dest].neighbours) {
+              var link = {}
+              link.source = nodeTable[src]
+              link.target = nodeTable[dest]
+              var tq = n.neighbours.batadv[dest].neighbours[src].tq
+              link.quality = (255 / (tq ? tq : 1)) + ", " + (255 / (tq ? tq : 1))
+              link.type = typeTable[dest] === "tunnel" ? "vpn" : null
+              link.id = src + "-" + dest
+              if (!isNaN(link.source) && !isNaN(link.target))
+                ffmapJson.links.push(link)
+            }
+        }
+      }
+      callback2()
+    }, () => {
+      ffmapJson.links = _.uniqWith(ffmapJson.links, (a, b) => {
+        return ((a.source == b.source && a.target == b.target) ||
+                (a.source == b.target && a.target == b.source))
+      })
+      stream.write(JSON.stringify(ffmapJson))
+      stream.end()
+    })
+  })
+}
+
 //Prometheus metrics
 
 function getMetrics(stream) {
@@ -321,7 +393,7 @@ function getMetrics(stream) {
     if (_.has(n, what))
       stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
   }
-  var get = (n, what) => {
+  function get(n, what) {
     if (_.has(n, what))
       return _.get(n, what)
     else
@@ -375,7 +447,7 @@ function getMetrics(stream) {
 // start webserver //
 /////////////////////
  
-web.listen(webport, () => {
+web.listen(webport, webip, () => {
   console.log('webserver listening on port ' + webport)
 })
 
