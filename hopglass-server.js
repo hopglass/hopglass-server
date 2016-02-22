@@ -155,7 +155,7 @@ function getHosts(stream) {
   var data = getData()
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'nodeinfo.hostname')) {
-      var hostname = n.nodeinfo.hostname.toLowerCase().replace(/[^0-9a-z-_]/g,'')
+      var hostname = _.get(n, 'nodeinfo.hostname', 'unknown').toLowerCase().replace(/[^0-9a-z-_]/g,'')
       async.forEachOf(n.nodeinfo.network.addresses, (a,l,callback2) => {
         if (a.slice(0,4) != 'fe80')
           stream.write((a + ' ' + hostname) + '\n')
@@ -182,7 +182,6 @@ function parsePeerGroup(pg) {
         return true
     }
   }
-  return false
 }
 
 function getNodesJson(stream) {
@@ -194,26 +193,24 @@ function getNodesJson(stream) {
   async.forEachOf(data, (n, k, loopCallback) => {
     if (n.nodeinfo) {
       var node = {}
-      node.nodeinfo = n.nodeinfo
+      node.nodeinfo = _.get(n, 'nodeinfo', {})
       node.flags = {}
-      node.flags.gateway = _.get(n, 'flags.gateway', false)
+      node.flags.gateway = _.get(n, 'flags.gateway')
       node.flags.online = isOnline(n)
       node.statistics = {}
-      if (_.has(n, 'statistics.mesh_vpn'))
-        node.flags.uplink = parsePeerGroup(n.statistics.mesh_vpn)
-      if (_.has(n, 'statistics.uptime'))
-        node.statistics.uptime = n.statistics.uptime
-      if (_.has(n, 'statistics.gateway'))
-        node.statistics.gateway = n.statistics.gateway
-      if (_.has(n, 'statistics.memory.total') && _.has(n, 'statistics.memory.free'))
-        node.statistics.memory_usage = (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total
-      if (_.has(n, 'statistics.rootfs_usage'))
-        node.statistics.rootfs_usage = n.statistics.rootfs_usage
-      node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
-      if (_.has(n, 'statistics.loadavg'))
-        node.statistics.loadavg = n.statistics.loadavg
-      node.lastseen = n.lastseen ? n.lastseen : new Date().toISOString()
-      node.firstseen = n.firstseen ? n.firstseen : new Date().toISOString()
+      node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+      node.statistics.uptime = _.get(n, 'statistics.uptime')
+      node.statistics.gateway = _.get(n, 'statistics.gateway')
+      if(_.has(n, 'statistics.memory'))
+        node.statistics.memory_usage =
+            (_.get(n, 'statistics.memory.total', 0)
+           - _.get(n, 'statistics.memory.free', 0))
+           / _.get(n, 'statistics.memory.total', 0)
+      node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
+      node.statistics.clients = _.get(n, 'statistics.clients.total')
+      node.statistics.loadavg = _.get(n, 'statistics.loadavg', 0)
+      node.lastseen = _.get(n, 'firstseen', new Date().toISOString())
+      node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
       njson.nodes.push(node)
     }
     loopCallback()
@@ -239,6 +236,7 @@ function getGraphJson(stream) {
   gjson.batadv.links = []
   gjson.batadv.graph = null
   var nodetable = {}
+  var typetable = {}
   var counter = 0
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
@@ -251,20 +249,28 @@ function getGraphJson(stream) {
       gjson.batadv.nodes.push(nodeentry)
       counter++
     }
+    if (_.has(n, 'nodeinfo.network.mesh'))
+      for (let bat in n.nodeinfo.network.mesh) {
+        for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+          n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+            typetable[d] = type
+          })
+        }
+      }
     callback1()
   }, () => {
     async.forEachOf(data, (n, k, callback2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-        for (let src in n.neighbours.batadv) {
-          if (_.has(n.neighbours.batadv[src], 'neighbours'))
-            for (let dest in n.neighbours.batadv[src].neighbours) {
+        for (let dest in n.neighbours.batadv) {
+          if (_.has(n.neighbours.batadv[dest], 'neighbours'))
+            for (let src in n.neighbours.batadv[dest].neighbours) {
               var link = {}
               link.source = nodetable[src]
               link.target = nodetable[dest]
-              var tq = n.neighbours.batadv[src].neighbours[dest].tq
+              var tq = n.neighbours.batadv[dest].neighbours[src].tq
               link.tq = 255 / (tq ? tq : 1)
-              link.vpn = n.flags ? n.flags.vpn : false
-              if (link.source && link.target)
+              link.type = typetable[dest]
+              if (!isNaN(link.source) && !isNaN(link.target))
                 gjson.batadv.links.push(link)
             }
         }
@@ -287,18 +293,16 @@ function getNodelistJson(stream) {
   async.forEachOf(data, (n, k, callback) => {
     var node = {}
     node.id = k
-    if (_.has(n, 'nodeinfo.hostname'))
-      node.name = _.get(n, 'nodeinfo.hostname')
+    node.name = _.get(n, 'nodeinfo.hostname')
     node.status = {}
-    node.status.lastcontact = n.lastseen ? n.lastseen : new Date().toISOString()
-    node.status.firstcontact = n.firstseen ? n.lastseen : new Date().toISOString()
+    node.status.lastcontact = _.get(n, 'lastseen', new Date().toISOString())
+    node.status.firstcontact = _.get(n, 'firstseen', new Date().toISOString())
     node.status.online = isOnline(n)
-    if (_.has(n, 'statistics.clients.total'))
-      node.status.clients = _.get(n, 'statistics.clients.total')
+    node.status.clients = _.get(n, 'statistics.clients.total')
     if (_.has(n, 'nodeinfo.location.latitude') && _.has(n, 'nodeinfo.location.longitude')) {
       node.position = {}
-      node.position.lat = n.nodeinfo.location.latitude
-      node.position.long = n.nodeinfo.location.longitude
+      node.position.lat = _.get(n, 'nodeinfo.location.latitude')
+      node.position.long = _.get(n, 'nodeinfo.location.longitude')
     }
     nl.nodes.push(node)
     callback()
