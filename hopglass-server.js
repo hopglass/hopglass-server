@@ -22,9 +22,10 @@ argv = undefined
 
 var raw = {}
 var aliases = {}
+var data = {}
 
 function getData() {
-  return _.merge({}, raw, aliases)
+  data = _.merge({}, raw, aliases)
 }
 
 fs.readFile('./raw.json', 'utf8', (err, res) => {
@@ -152,7 +153,7 @@ var web = http.createServer((req, stream) => {
 })
 
 function getHosts(stream) {
-  var data = getData()
+  getData()
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'nodeinfo.hostname')) {
       var hostname = _.get(n, 'nodeinfo.hostname', 'unknown').toLowerCase().replace(/[^0-9a-z-_]/g,'')
@@ -185,7 +186,7 @@ function parsePeerGroup(pg) {
 }
 
 function getNodesJson(stream) {
-  var data = getData()
+  getData()
   var njson = {}
   njson.version = 2
   njson.nodes = []
@@ -207,8 +208,8 @@ function getNodesJson(stream) {
            - _.get(n, 'statistics.memory.free', 0))
            / _.get(n, 'statistics.memory.total', 0)
       node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
-      node.statistics.clients = _.get(n, 'statistics.clients.total')
-      node.statistics.loadavg = _.get(n, 'statistics.loadavg', 0)
+      node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
+      node.statistics.loadavg = _.get(n, 'statistics.loadavg')
       node.lastseen = _.get(n, 'firstseen', new Date().toISOString())
       node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
       njson.nodes.push(node)
@@ -225,7 +226,7 @@ function isOnline(node) {
 }
 
 function getGraphJson(stream) {
-  var data = getData()
+  getData()
   var gjson = {}
   gjson.timestamp = new Date().toISOString()
   gjson.version = 1
@@ -285,7 +286,7 @@ function getGraphJson(stream) {
 
 //nodelist.json (yet another format)
 function getNodelistJson(stream) {
-  var data = getData()
+  getData()
   var nl = {}
   nl.version = "1.0.0"
   nl.updated_at = new Date().toISOString()
@@ -315,7 +316,7 @@ function getNodelistJson(stream) {
 //Prometheus metrics
 
 function getMetrics(stream) {
-  var data = getData()
+  getData()
   var save = (n, id, stream, what, where) => {
     if (_.has(n, what))
       stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
