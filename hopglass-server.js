@@ -39,7 +39,7 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
   })
 })
 
-//collector callbacks
+//collector finisheds
 
 collector.on('error', (err) => {
   console.log(`collector error:\n${err.stack}`)
@@ -151,16 +151,16 @@ var web = http.createServer((req, stream) => {
 
 function getHosts(stream) {
   getData()
-  async.forEachOf(data, (n, k, callback1) => {
+  async.forEachOf(data, (n, k, finished1) => {
     if (_.has(n, 'nodeinfo.hostname')) {
       var hostname = _.get(n, 'nodeinfo.hostname', 'unknown').toLowerCase().replace(/[^0-9a-z-_]/g,'')
-      async.forEachOf(n.nodeinfo.network.addresses, (a,l,callback2) => {
+      async.forEachOf(n.nodeinfo.network.addresses, (a,l,finished2) => {
         if (a.slice(0,4) != 'fe80')
           stream.write((a + ' ' + hostname) + '\n')
-        callback2()
-      }, callback1)
+        finished2()
+      }, finished1)
     } else
-      callback1()
+      finished1()
   }, (err) => {
     stream.end()
   })
@@ -188,7 +188,7 @@ function getNodesJson(stream) {
   nJson.version = 2
   nJson.nodes = []
   nJson.timestamp = new Date().toISOString()
-  async.forEachOf(data, (n, k, loopCallback) => {
+  async.forEachOf(data, (n, k, finished) => {
     if (n.nodeinfo) {
       var node = {}
       node.nodeinfo = _.get(n, 'nodeinfo', {})
@@ -211,7 +211,7 @@ function getNodesJson(stream) {
       node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
       nJson.nodes.push(node)
     }
-    loopCallback()
+    finished()
   }, () => {
     stream.write(JSON.stringify(nJson))
     stream.end()
@@ -236,7 +236,7 @@ function getGraphJson(stream) {
   var nodeTable = {}
   var typeTable = {}
   var counter = 0
-  async.forEachOf(data, (n, k, callback1) => {
+  async.forEachOf(data, (n, k, finished1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
       var nodeEntry = {}
       nodeEntry.node_id = k
@@ -255,9 +255,9 @@ function getGraphJson(stream) {
           })
         }
       }
-    callback1()
+    finished1()
   }, () => {
-    async.forEachOf(data, (n, k, callback2) => {
+    async.forEachOf(data, (n, k, finished2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
         for (let dest in n.neighbours.batadv) {
           if (_.has(n.neighbours.batadv[dest], 'neighbours'))
@@ -280,7 +280,7 @@ function getGraphJson(stream) {
             }
         }
       }
-      callback2()
+      finished2()
     }, () => {
       stream.write(JSON.stringify(gJson))
       stream.end()
@@ -296,7 +296,7 @@ function getNodelistJson(stream) {
   nl.version = "1.0.0"
   nl.updated_at = new Date().toISOString()
   nl.nodes = []
-  async.forEachOf(data, (n, k, callback) => {
+  async.forEachOf(data, (n, k, finished) => {
     var node = {}
     node.id = k
     node.name = _.get(n, 'nodeinfo.hostname')
@@ -311,7 +311,7 @@ function getNodelistJson(stream) {
       node.position.long = _.get(n, 'nodeinfo.location.longitude')
     }
     nl.nodes.push(node)
-    callback()
+    finished()
   }, () => {
     stream.write(JSON.stringify(nl))
     stream.end()
@@ -330,7 +330,7 @@ function getFfmapJson(stream) {
   var nodeTable = {}
   var typeTable = {}
   var counter = 0
-  async.forEachOf(data, (n, k, callback1) => {
+  async.forEachOf(data, (n, k, finished1) => {
     var node = {}
     node.id = _.get(n, 'nodeinfo.network.mac')
     node.name = _.get(n, 'nodeinfo.hostname')
@@ -357,9 +357,9 @@ function getFfmapJson(stream) {
       }
     ffmapJson.nodes.push(node)
     counter++
-    callback1()
+    finished1()
   }, () => {
-    async.forEachOf(data, (n, k, callback2) => {
+    async.forEachOf(data, (n, k, finished2) => {
       if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
         for (let dest in n.neighbours.batadv) {
           if (_.has(n.neighbours.batadv[dest], 'neighbours'))
@@ -376,7 +376,7 @@ function getFfmapJson(stream) {
             }
         }
       }
-      callback2()
+      finished2()
     }, () => {
       ffmapJson.links = _.uniqWith(ffmapJson.links, (a, b) => {
         return ((a.source == b.source && a.target == b.target) ||
@@ -409,7 +409,8 @@ function getMetrics(stream) {
   var counter_traffic_mgmt_tx = 0
   var counter_traffic_forward = 0
   var counter_clients = 0
-  async.forEachOf(data, (n, k, loopCallback) => {
+  var nodeTable = {}
+  async.forEachOf(data, (n, k, finished1) => {
     if (isOnline(n)) {
       counter_meshnodes_online_total++
       if (_.has(n, 'nodeinfo.hostname') && isOnline(n)) {
@@ -432,17 +433,40 @@ function getMetrics(stream) {
       counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
       counter_clients += get(n, 'statistics.clients.total')
     }
-    loopCallback()
+
+    if (_.has(n, 'neighbours.batadv') && isOnline(n))
+      for (let mac in n.neighbours.batadv)
+        nodeTable[mac] = k
+
+    finished1()
   }, () => {
-    stream.write('meshnodes_total ' + Object.keys(data).length + '\n')
-    stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
-    stream.write('total_clients ' + counter_clients + '\n')
-    stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
-    stream.write('total_traffic_mgmt_rx ' + counter_traffic_mgmt_rx + '\n')
-    stream.write('total_traffic_tx ' + counter_traffic_tx + '\n')
-    stream.write('total_traffic_mgmt_tx ' + counter_traffic_mgmt_tx + '\n')
-    stream.write('total_traffic_forward ' + counter_traffic_forward + '\n')
-    stream.end()
+    async.forEachOf(data, (n, k, finished2) => {
+      if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
+        for (let dest in n.neighbours.batadv) {
+          if (_.has(n.neighbours.batadv[dest], 'neighbours'))
+            for (let src in n.neighbours.batadv[dest].neighbours) {
+              var source = nodeTable[src]
+              var target = nodeTable[dest]
+              var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq']) / 255
+              if (source === undefined) {
+                source = src.replace(/:/g, '')
+              }
+              stream.write('link_tq{source="' + source + '",target="' + target + '"} ' + tq + '\n')
+            }
+        }
+      }
+      finished2()
+    }, () => {
+      stream.write('meshnodes_total ' + Object.keys(data).length + '\n')
+      stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
+      stream.write('total_clients ' + counter_clients + '\n')
+      stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
+      stream.write('total_traffic_mgmt_rx ' + counter_traffic_mgmt_rx + '\n')
+      stream.write('total_traffic_tx ' + counter_traffic_tx + '\n')
+      stream.write('total_traffic_mgmt_tx ' + counter_traffic_mgmt_tx + '\n')
+      stream.write('total_traffic_forward ' + counter_traffic_forward + '\n')
+      stream.end()
+    })
   })
 }
 
