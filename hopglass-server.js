@@ -39,9 +39,7 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
   })
 })
 
-/////////////////////
-// collector stuff //
-/////////////////////
+//collector callbacks
 
 collector.on('error', (err) => {
   console.log(`collector error:\n${err.stack}`)
@@ -99,9 +97,7 @@ function backupData() {
   })
 }
 
-/////////////////////
-// start collector //
-/////////////////////
+//start collector
 
 function startCollector() {
   collector.bind(collectorport)
@@ -124,9 +120,7 @@ function startCollector() {
   }, 60000)
 }
 
-/////////////////////
-// webserver stuff //
-/////////////////////
+//webserver
 
 var web = http.createServer((req, stream) => {
   stream.setHeader('Access-Control-Allow-Origin', '*')
@@ -172,7 +166,7 @@ function getHosts(stream) {
   })
 }
 
-//MV jsons
+//Hopglass jsons
 
 function parsePeerGroup(pg) {
   for (let i in pg) {
@@ -271,7 +265,7 @@ function getGraphJson(stream) {
               var link = {}
               link.source = nodeTable[src]
               link.target = nodeTable[dest]
-              var tq = n.neighbours.batadv[dest].neighbours[src].tq
+              var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
               link.tq = 255 / (tq ? tq : 1)
               link.type = typeTable[dest]
               if (!isNaN(link.source) && !isNaN(link.target))
@@ -288,6 +282,7 @@ function getGraphJson(stream) {
 }
 
 //nodelist.json (yet another format)
+
 function getNodelistJson(stream) {
   getData()
   var nl = {}
@@ -317,6 +312,7 @@ function getNodelistJson(stream) {
 }
 
 //ffmap-d3
+
 function getFfmapJson(stream) {
   getData()
   var ffmapJson = {}
@@ -364,7 +360,7 @@ function getFfmapJson(stream) {
               var link = {}
               link.source = nodeTable[src]
               link.target = nodeTable[dest]
-              var tq = n.neighbours.batadv[dest].neighbours[src].tq
+              var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
               link.quality = (255 / (tq ? tq : 1)) + ", " + (255 / (tq ? tq : 1))
               link.type = typeTable[dest] === "tunnel" ? "vpn" : null
               link.id = src + "-" + dest
@@ -443,9 +439,7 @@ function getMetrics(stream) {
   })
 }
 
-/////////////////////
-// start webserver //
-/////////////////////
+//start webserver
  
 web.listen(webport, webip, () => {
   console.log('webserver listening on port ' + webport)
