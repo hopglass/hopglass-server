@@ -238,13 +238,13 @@ function getGraphJson(stream) {
   var counter = 0
   async.forEachOf(data, (n, k, callback1) => {
     if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-      var nodeentry = {}
-      nodeentry.node_id = k
+      var nodeEntry = {}
+      nodeEntry.node_id = k
       for (let mac in n.neighbours.batadv) {
-        nodeentry.id = mac
+        nodeEntry.id = mac
         nodeTable[mac] = counter
       }
-      gJson.batadv.nodes.push(nodeentry)
+      gJson.batadv.nodes.push(nodeEntry)
       counter++
     }
     if (_.has(n, 'nodeinfo.network.mesh'))
@@ -268,8 +268,15 @@ function getGraphJson(stream) {
               var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
               link.tq = 255 / (tq ? tq : 1)
               link.type = typeTable[dest]
-              if (!isNaN(link.source) && !isNaN(link.target))
-                gJson.batadv.links.push(link)
+              if (isNaN(link.source)) {
+                var nodeEntry = {}
+                nodeEntry.id = src
+                nodeTable[src] = counter
+                gJson.batadv.nodes.push(nodeEntry)
+                link.source = counter
+                counter++
+              }
+              gJson.batadv.links.push(link)
             }
         }
       }
