@@ -413,8 +413,8 @@ function getMetrics(stream) {
   async.forEachOf(data, (n, k, finished1) => {
     if (isOnline(n)) {
       counter_meshnodes_online_total++
-      if (_.has(n, 'nodeinfo.hostname') && isOnline(n)) {
-        var id = '{hostname="' + n.nodeinfo.hostname + '",nodeid="' + k + '"}'
+      if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
+        var id = '{hostname="' + _.get(n, 'nodeinfo.hostname',"") + '",nodeid="' + k + '",gateway="' + _.get(n, 'statistics.gateway') + '"}'
         save(n, id, stream, 'statistics.clients.total')
         save(n, id, stream, 'statistics.uptime')
         save(n, id, stream, 'statistics.traffic.rx.bytes')
