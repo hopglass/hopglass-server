@@ -219,7 +219,7 @@ function getNodesJson(stream) {
 }
 
 function isOnline(node) {
-  return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 3000
+  return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 5000
 }
 
 function getGraphJson(stream) {
