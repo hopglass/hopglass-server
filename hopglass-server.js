@@ -219,7 +219,10 @@ function getNodesJson(stream) {
 }
 
 function isOnline(node) {
-  return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 5000
+  if (node)
+    return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 5000
+  else
+    return false
 }
 
 function getGraphJson(stream) {
@@ -237,7 +240,7 @@ function getGraphJson(stream) {
   var typeTable = {}
   var counter = 0
   async.forEachOf(data, (n, k, finished1) => {
-    if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac') && isOnline(n)) {
+    if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac')) {
       var nodeEntry = {}
       nodeEntry.node_id = k
       nodeEntry.id = _.get(n, 'nodeinfo.network.mac')
@@ -269,12 +272,19 @@ function getGraphJson(stream) {
               link.tq = 255 / (tq ? tq : 1)
               link.type = typeTable[dest]
               if (isNaN(link.source)) {
+                //unknown node (not in data) -> create nodeentry
                 var nodeEntry = {}
                 nodeEntry.id = src
                 nodeTable[src] = counter
                 gJson.batadv.nodes.push(nodeEntry)
                 link.source = counter
                 counter++
+              } else {
+                //unseen node offline, but is seen by other nodes
+                if (!isOnline(data[gJson.batadv.nodes[link.source].node_id]))
+                  gJson.batadv.nodes[link.source].unseen = true
+                if (!isOnline(data[gJson.batadv.nodes[link.target].node_id]))
+                  gJson.batadv.nodes[link.target].unseen = true
               }
               gJson.batadv.links.push(link)
             }
