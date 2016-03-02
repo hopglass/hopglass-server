@@ -39,7 +39,7 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
   })
 })
 
-//collector finisheds
+//collector callbacks
 
 collector.on('error', (err) => {
   console.log(`collector error:\n${err.stack}`)
@@ -237,11 +237,11 @@ function getGraphJson(stream) {
   var typeTable = {}
   var counter = 0
   async.forEachOf(data, (n, k, finished1) => {
-    if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
+    if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac') && isOnline(n)) {
       var nodeEntry = {}
       nodeEntry.node_id = k
+      nodeEntry.id = _.get(n, 'nodeinfo.network.mac')
       for (let mac in n.neighbours.batadv) {
-        nodeEntry.id = mac
         nodeTable[mac] = counter
       }
       gJson.batadv.nodes.push(nodeEntry)
