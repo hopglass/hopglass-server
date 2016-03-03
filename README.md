@@ -86,13 +86,13 @@ npm install
 exit
 
 #Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/bin/hopglass
+echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/bin/hopglass
 ```
 
 ###Older Ubuntu or Debian Jessie
 
 ```
-#Install NodeJS
+#Install NodeJS from external repositories
 sudo -i
 wget -O- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
 echo "deb https://deb.nodesource.com/node_5.x $(lsb_release -c -s) main" > /etc/apt/sources.list.d/nodesource.list
@@ -111,7 +111,7 @@ npm install
 exit
 
 #Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/bin/hopglass
+echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/bin/hopglass
 ```
 
 ##After installation
