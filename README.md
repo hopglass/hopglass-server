@@ -86,7 +86,7 @@ npm install
 exit
 
 #Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/bin/hopglass
+echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/sbin/hopglass
 ```
 
 ###Older Ubuntu or Debian Jessie
@@ -111,7 +111,7 @@ npm install
 exit
 
 #Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/bin/hopglass
+echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/sbin/hopglass
 ```
 
 ##After installation
