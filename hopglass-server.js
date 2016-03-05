@@ -222,7 +222,7 @@ function isOnline(node) {
   if (node)
     return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < nodeinfoInterval * 5000
   else
-    return false
+    return true
 }
 
 function getGraphJson(stream) {
@@ -237,19 +237,28 @@ function getGraphJson(stream) {
   gJson.batadv.links = []
   gJson.batadv.graph = null
   var nodeTable = {}
+  var macTable = {}
   var typeTable = {}
   var counter = 0
-  async.forEachOf(data, (n, k, finished1) => {
-    if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac')) {
-      var nodeEntry = {}
-      nodeEntry.node_id = k
-      nodeEntry.id = _.get(n, 'nodeinfo.network.mac')
-      for (let mac in n.neighbours.batadv) {
-        nodeTable[mac] = counter
-      }
-      gJson.batadv.nodes.push(nodeEntry)
-      counter++
+  function createEntry(mac) {
+    var nodeEntry = {}
+    nodeEntry.id = mac
+    nodeEntry.node_id = macTable[mac]
+    nodeTable[mac] = counter
+    var node = data[macTable[mac]]
+    for (let m in _.get(node, 'neighbours.batadv')) {
+      nodeTable[m] = counter
     }
+    if (!isOnline(node))
+      nodeEntry.unseen = true
+    counter++
+    gJson.batadv.nodes.push(nodeEntry)
+  }
+  async.forEachOf(data, (n, k, finished1) => {
+    if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac'))
+      for (let mac in n.neighbours.batadv) {
+        macTable[mac] = k
+      }
     if (_.has(n, 'nodeinfo.network.mesh'))
       for (let bat in n.nodeinfo.network.mesh) {
         for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
@@ -273,18 +282,12 @@ function getGraphJson(stream) {
               link.type = typeTable[dest]
               if (isNaN(link.source)) {
                 //unknown node (not in data) -> create nodeentry
-                var nodeEntry = {}
-                nodeEntry.id = src
-                nodeTable[src] = counter
-                gJson.batadv.nodes.push(nodeEntry)
-                link.source = counter
-                counter++
-              } else {
-                //unseen node offline, but is seen by other nodes
-                if (!isOnline(data[gJson.batadv.nodes[link.source].node_id]))
-                  gJson.batadv.nodes[link.source].unseen = true
-                if (!isOnline(data[gJson.batadv.nodes[link.target].node_id]))
-                  gJson.batadv.nodes[link.target].unseen = true
+                createEntry(src)
+                link.source = nodeTable[src]
+              }
+              if (isNaN(link.target)) {
+                createEntry(dest)
+                link.target = nodeTable[dest]
               }
               gJson.batadv.links.push(link)
             }
