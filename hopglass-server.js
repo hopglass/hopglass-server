@@ -417,6 +417,7 @@ function getMetrics(stream) {
       return 0;
   }
   var counter_meshnodes_online_total = 0
+  var counter_meshnodes_total = 0
   var counter_traffic_rx = 0
   var counter_traffic_mgmt_rx = 0
   var counter_traffic_tx = 0
@@ -425,6 +426,7 @@ function getMetrics(stream) {
   var counter_clients = 0
   var nodeTable = {}
   async.forEachOf(data, (n, k, finished1) => {
+    counter_meshnodes_total++
     if (isOnline(n)) {
       counter_meshnodes_online_total++
       if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
@@ -471,7 +473,7 @@ function getMetrics(stream) {
       }
       finished2()
     }, () => {
-      stream.write('meshnodes_total ' + Object.keys(data).length + '\n')
+      stream.write('meshnodes_total ' + counter_meshnodes_total + '\n')
       stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
       stream.write('total_clients ' + counter_clients + '\n')
       stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
