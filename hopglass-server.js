@@ -1,5 +1,5 @@
 #!/usr/bin/node
-"use strict";
+'use strict';
 
 var dgram = require('dgram')
 var collector = dgram.createSocket('udp6')
@@ -11,12 +11,20 @@ var _ = require('lodash')
 
 var argv = require('minimist')(process.argv.slice(2))
 
+if (argv.config)
+  fs.readFile(argv.config, 'utf8', (err, res) => {
+  if (err)
+    throw err
+  else
+    argv = JSON.parse(res)
+})
+
 var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
 var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
 var collectorport = argv.collectorport ? argv.collectorport : 45123
-var webip = argv.webip ? argv.webip : "::"
+var webip = argv.webip ? argv.webip : '::'
 var webport = argv.webport ? argv.webport : 4000
-var ifaces = argv.ifaces ? argv.ifaces.split(",") : [argv.iface ? argv.iface : 'bat0']
+var ifaces = argv.ifaces ? argv.ifaces.split(',') : [argv.iface ? argv.iface : 'bat0']
 var targetip = argv.targetip ? argv.targetip : 'ff02::1'
 var targetport = argv.targetport ? argv.targetport : 1001
 
@@ -307,7 +315,7 @@ function getGraphJson(stream) {
 function getNodelistJson(stream) {
   getData()
   var nl = {}
-  nl.version = "1.0.0"
+  nl.version = '1.0.0'
   nl.updated_at = new Date().toISOString()
   nl.nodes = []
   async.forEachOf(data, (n, k, finished) => {
@@ -348,7 +356,7 @@ function getFfmapJson(stream) {
     var node = {}
     node.id = _.get(n, 'nodeinfo.network.mac')
     node.name = _.get(n, 'nodeinfo.hostname')
-    node.flags = {"gateway": false, "online": isOnline(n)}
+    node.flags = {'gateway': false, 'online': isOnline(n)}
     node.clientcount = _.get(n, 'statistics.clients.total', 0)
     node.firmware = _.get(n, 'nodeinfo.software.firmware.release')
     if (_.has(n, 'nodeinfo.location.latitude') && _.has(n, 'nodeinfo.location.longitude')) {
@@ -382,9 +390,9 @@ function getFfmapJson(stream) {
               link.source = nodeTable[src]
               link.target = nodeTable[dest]
               var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
-              link.quality = (255 / (tq ? tq : 1)) + ", " + (255 / (tq ? tq : 1))
-              link.type = typeTable[dest] === "tunnel" ? "vpn" : null
-              link.id = src + "-" + dest
+              link.quality = (255 / (tq ? tq : 1)) + ', ' + (255 / (tq ? tq : 1))
+              link.type = typeTable[dest] === 'tunnel' ? 'vpn' : null
+              link.id = src + '-' + dest
               if (!isNaN(link.source) && !isNaN(link.target))
                 ffmapJson.links.push(link)
             }

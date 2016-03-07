@@ -1,0 +1,10 @@
+{
+  "nodeinfoInterval": 500,
+  "statisticsInterval": 60,
+  "collectorport": 45123,
+  "webip": "::",
+  "webport": 4000,
+  "ifaces": "bat0,enp4s0",
+  "targetip": "ff02::1",
+  "targetport": 1001
+}
