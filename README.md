@@ -11,7 +11,7 @@ Setup is easy:
 3. Start the server:
    `node hopglass.js [args]`
 
-The following arguments can be supplied:
+The following options can be supplied either as arguments or in a configuration file specified with `--config FILE`:
 
 |Argument          |Default       |Description|
 |------------------|--------------|---|
