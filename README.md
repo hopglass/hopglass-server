@@ -28,13 +28,14 @@ The following options can be supplied either as arguments or in a configuration 
 Possible webserver queries
 --------------------------
 
-|Query Location|Description|
-|--------------|---|
-|/nodes.json   |Meshviewer nodes.json v2|
-|/graph.json   |Meshviewer graph.json v1|
-|/raw.json     |raw data collected, same as the `raw.json` save file|
-|/hosts        |hosts file|
-|/metrics      |Prometheus metrics (currently gluon-collector-style, might change)|
+|Query Location   |Description|
+|-----------------|---|
+|/nodes.json      |Meshviewer nodes.json v2|
+|/graph.json      |Meshviewer graph.json v1|
+|/raw.json        |raw data collected, same as the `raw.json` save file|
+|/hosts           |hosts file|
+|/metrics         |Prometheus metrics|
+|/wifi-aliases.txt|Aliases file for Wifi Analyzer app|
 
 ##Metrics values
 
