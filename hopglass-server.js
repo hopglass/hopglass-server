@@ -151,6 +151,8 @@ var web = http.createServer((req, stream) => {
     getMetrics(stream)
   else if (req.url == '/hosts')
     getHosts(stream)
+  else if (req.url == '/wifi-aliases.txt')
+    getWifiAliases(stream)
   else if (req.url == '/raw.json') {
     stream.write(JSON.stringify(raw))
     stream.end()
@@ -176,6 +178,19 @@ function getHosts(stream) {
     } else
       finished1()
   }, (err) => {
+    stream.end()
+  })
+}
+
+function getWifiAliases(stream) {
+  getData()
+  async.forEachOf(_.filter(data, 'nodeinfo.network.mesh.bat0.interfaces.wireless'), (n, k, finished1) => {
+    var hostname = _.get(n, 'nodeinfo.hostname', 'unknown')
+    async.forEachOf(_.get(n, 'nodeinfo.network.mesh.bat0.interfaces.wireless'), (mac, l, finished2) => {
+      stream.write(mac + '|' + hostname + ' (' + mac + ')\n')
+      finished2()
+    }, finished1)
+  }, () => {
     stream.end()
   })
 }
