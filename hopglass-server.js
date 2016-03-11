@@ -1,5 +1,5 @@
 #!/usr/bin/node
-'use strict';
+'use strict'
 
 var dgram = require('dgram')
 var collector = dgram.createSocket('udp6')
@@ -13,11 +13,11 @@ var argv = require('minimist')(process.argv.slice(2))
 
 if (argv.config)
   fs.readFile(argv.config, 'utf8', (err, res) => {
-  if (err)
-    throw err
-  else
-    argv = JSON.parse(res)
-})
+    if (err)
+      throw err
+    else
+      argv = JSON.parse(res)
+  })
 
 var nodeinfoInterval = argv.nodeinfoInterval ? argv.nodeinfoInterval : 180
 var statisticsInterval = argv.statisticsInterval ? argv.statisticsInterval : 60
@@ -53,6 +53,11 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
 collector.on('error', (err) => {
   console.log(`collector error:\n${err.stack}`)
   collector.close()
+  process.exit(1)
+})
+
+collector.on('listening', () => {
+  console.log('collector listening on port ' + collectorport)
 })
 
 collector.on('message', (msg, rinfo) => {
