@@ -2,7 +2,7 @@
   "name": "hopglass-server",
   "version": "1.0.0",
   "description": "Collect data from Freifunk networks and provide it in serveral formats",
-  "main": "hopglass.js",
+  "main": "hopglass-server.js",
   "dependencies": {
     "async": "^1.5.2",
     "lodash": "^4.2.1",

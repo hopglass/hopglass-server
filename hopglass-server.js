@@ -138,30 +138,49 @@ function startCollector() {
 
 var web = http.createServer((req, stream) => {
   stream.setHeader('Access-Control-Allow-Origin', '*')
-  stream.writeHead(200, { 'Content-Type': 'text/json' })
-  if (req.url == '/nodes.json')
-    getNodesJson(stream)
-  else if (req.url == '/graph.json')
-    getGraphJson(stream)
-  else if (req.url == '/nodelist.json')
-    getNodelistJson(stream)
-  else if (req.url == '/ffmap.json')
-    getFfmapJson(stream)
-  else if (req.url == '/metrics')
-    getMetrics(stream)
-  else if (req.url == '/hosts')
-    getHosts(stream)
-  else if (req.url == '/wifi-aliases.txt')
-    getWifiAliases(stream)
-  else if (req.url == '/raw.json') {
-    stream.write(JSON.stringify(raw))
-    stream.end()
-  } else if (req.url == '/data.json') {
-    stream.write(JSON.stringify(data))
-    stream.end()
-  } else {
-    stream.write('404')
-    stream.end()
+  switch (req.url) {
+    case '/nodes.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      getNodesJson(stream)
+      break
+    case '/graph.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      getGraphJson(stream)
+      break
+    case '/nodelist.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      getNodelistJson(stream)
+      break
+    case '/ffmap.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      getFfmapJson(stream)
+      break
+    case '/metrics':
+      stream.writeHead(200, { 'Content-Type': 'text/plain' })
+      getMetrics(stream)
+      break
+    case '/hosts':
+      stream.writeHead(200, { 'Content-Type': 'text/plain' })
+      getHosts(stream)
+      break
+    case '/wifi-aliases.txt':
+      stream.writeHead(200, { 'Content-Type': 'text/plain' })
+      getWifiAliases(stream)
+      break
+    case '/raw.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      stream.write(JSON.stringify(raw))
+      stream.end()
+      break
+    case '/data.json':
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      stream.write(JSON.stringify(data))
+      stream.end()
+      break
+    default:
+      stream.writeHead(404, { 'Content-Type': 'text/plain' })
+      stream.write('404')
+      stream.end()
   }
 })
 
