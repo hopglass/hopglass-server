@@ -514,7 +514,10 @@ function getMetrics(stream) {
               if (source === undefined) {
                 source = src.replace(/:/g, '')
               }
-              stream.write('link_tq{source="' + source + '",target="' + target + '"} ' + tq + '\n')
+              var source_name = _.get(data, [source, 'nodeinfo', 'hostname'], source)
+              var target_name = _.get(data, [target, 'nodeinfo', 'hostname'], target)
+              stream.write('link_tq{source="' + source + '",target="' + target
+                + '",source_name="' + source_name + '",target_name="' + target_name + '"} ' + tq + '\n')
             }
         }
       }
