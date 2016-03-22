@@ -5,13 +5,20 @@ var fs = require('fs')
 var a = require('async')
 var _ = require('lodash')
 
-var fsite = process.argv[2]
+var sites = process.argv.slice(2)
 
-if (!fsite)
-  console.log('please specify a site code to remove')
+if (sites.length == 0)
+  console.log('please specify at least one site code to remove')
 
-function isSite(n) {
-  return _.get(n, 'nodeinfo.system.site_code', fsite) != fsite
+function filter(node, callback) {
+  var ret = false
+  a.forEachOf(sites, (site, index, callback2) => {
+    if (_.get(node, 'nodeinfo.system.site_code', site) == site)
+      ret = true
+    callback2()
+  }, () => {
+    callback(ret)
+  })
 }
 
 fs.readFile('./raw.json', 'utf8', (err, res) => {
@@ -19,10 +26,17 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
     throw(err)
 
   var raw = JSON.parse(res)
-  var fNodes = _.filter(raw, isSite)
 
-  fs.writeFile('raw.json.new', JSON.stringify(fNodes), (err) => {
-    if (err)
-      throw(err)
+  a.forEachOf(raw, (node, id, callback) => {
+    filter(node, (res) => {
+      if (res)
+        raw[id] = undefined
+      callback()
+    })
+  }, () => {
+    fs.writeFile('raw.json.new', JSON.stringify(raw), (err) => {
+      if (err)
+        throw(err)
+    })
   })
 })
