@@ -203,12 +203,23 @@ function getHosts(stream) {
 
 function getWifiAliases(stream) {
   getData()
-  async.forEachOf(_.filter(data, 'nodeinfo.network.mesh.bat0.interfaces.wireless'), (n, k, finished1) => {
+  function write(mac, hostname, primaryMac) {
+    stream.write(mac + '|' + hostname + ' (' + primaryMac + ')\n')
+  }
+  function getAPMac(mac, offset) {
+    //thanks to pixelistik
+    var macParts = mac.split(":")
+    macParts[0] = (parseInt(macParts[0], 16) + 2).toString(16)
+    macParts[1] = (parseInt(macParts[1], 16) + 2).toString(16)
+    macParts[2] = (parseInt(macParts[2], 16) + offset).toString(16)
+    return macParts.join(":")
+  }
+  async.forEachOf(_.filter(data, 'nodeinfo.network.mac'), (n, k, finished1) => {
     var hostname = _.get(n, 'nodeinfo.hostname', 'unknown')
-    async.forEachOf(_.get(n, 'nodeinfo.network.mesh.bat0.interfaces.wireless'), (mac, l, finished2) => {
-      stream.write(mac + '|' + hostname + ' (' + mac + ')\n')
-      finished2()
-    }, finished1)
+    var mac = _.get(n, 'nodeinfo.network.mac')
+    write(getAPMac(mac, 1), hostname, mac)
+    write(getAPMac(mac, 2), hostname, mac)
+    finished1()
   }, () => {
     stream.end()
   })
