@@ -208,17 +208,24 @@ function getWifiAliases(stream) {
   }
   function getAPMac(mac, offset) {
     //thanks to pixelistik
-    var macParts = mac.split(":")
-    macParts[0] = (parseInt(macParts[0], 16) + 2).toString(16)
-    macParts[1] = (parseInt(macParts[1], 16) + 2).toString(16)
-    macParts[2] = (parseInt(macParts[2], 16) + offset).toString(16)
-    return macParts.join(":")
+    var parts = mac.split(":").map((d) => {
+      return parseInt(d, 16)
+    })
+
+    parts[0] = parts[0] + 2 % 255
+    parts[1] = parts[1] + 2 % 255
+    parts[2] = parts[2] + offset % 255
+
+    return parts.map((d) => {
+      var i = d.toString(16)
+      return ("0" + i).substr(i.length-1)
+    }).join(":")
   }
   async.forEachOf(_.filter(data, 'nodeinfo.network.mac'), (n, k, finished1) => {
     var hostname = _.get(n, 'nodeinfo.hostname', 'unknown')
     var mac = _.get(n, 'nodeinfo.network.mac')
     write(getAPMac(mac, 1), hostname, mac)
-    write(getAPMac(mac, 2), hostname, mac)
+    write(getAPMac(mac, 2), hostname + " (5GHz)", mac)
     finished1()
   }, () => {
     stream.end()
