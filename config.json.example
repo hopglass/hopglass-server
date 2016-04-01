@@ -1,10 +1,34 @@
 {
-  "nodeinfoInterval": 500,
-  "statisticsInterval": 60,
-  "collectorport": 45123,
-  "webip": "::",
-  "webport": 4000,
-  "ifaces": "bat0,enp4s0",
-  "targetip": "ff02::1",
-  "targetport": 1001
+  "core": {
+    "backup": {
+      "interval": 60000,
+      "file": "./raw.json"
+    }
+  },
+  "receiver": {
+    "announced": {
+      "target": {
+        "ip": "ff02::1",
+        "port": 1001
+      },
+      "port": 45123,
+      "interval": {
+        "statistics": 60,
+        "nodeinfo": 500
+      }
+    },
+    "ifaces": [
+      "bat0",
+      "enp4s0"
+    ]
+  },
+  "provider": {
+    "hopglass": {
+      "offlineTime": 900
+    }
+  },
+  "webserver": {
+    "ip": "::",
+    "port": 4000
+  }
 }
