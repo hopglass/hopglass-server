@@ -76,10 +76,6 @@ module.exports = function(raw, config) {
     retrieve('statistics')
   }, config.statisticsInterval * 1000)
   
-  setInterval(function() {
-    backupData()
-  }, 60000)
-  
   function getRaw() {
     return raw
   }
