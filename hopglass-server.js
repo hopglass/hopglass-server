@@ -58,6 +58,7 @@ function init(raw, readAliases) {
   collector = require('./modules/receiver/announced')(raw, config)
   var index = {}
   _.merge(index, require('./modules/provider/hopglass')(getData, config))
+  _.merge(index, require('./modules/provider/utilities')(getData))
   webserver = require('./modules/webserver')(index, config)
   setInterval(backupData, 60000)
 }
