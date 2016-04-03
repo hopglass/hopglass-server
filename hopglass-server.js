@@ -4,31 +4,28 @@
 var fs = require('fs')
 var _ = require('lodash')
 
-var argv = require('minimist')(process.argv.slice(2))
+var config = {
+  receiver: {},
+  provider: {},
+  webserver: {}
+}
 
-if (argv.config)
-  fs.readFile(argv.config, 'utf8', (err, res) => {
-    if (err)
-      throw err
-    else
-      argv = JSON.parse(res)
-  })
+{
+  var argv = require('minimist')(process.argv.slice(2))
+  argv.config = argv.config ? argv.config : __dirname + "/config.json"
 
-var config = {}
-config.nodeinfoInterval = _.get(argv, 'nodeinfoInterval', 180)
-config.statisticsInterval = _.get(argv, 'statisticsInterval', 60)
-config.collectorport = _.get(argv, 'collectorport', 45123)
-config.webip = _.get(argv, 'webip', '::')
-config.webport = _.get(argv, 'webport', 4000)
-config.ifaces = argv.ifaces ? argv.ifaces.split(',') : _.get(argv, 'iface', 'bat0')
-config.targetip = _.get(argv, 'targetip', 'ff02::1')
-config.targetport = _.get(argv, 'targetport', 1001)
-
-argv = undefined
+  try { // read config.json syncron
+    _.merge(config, JSON.parse(fs.readFileSync(argv.config, 'utf8')))
+  } catch (err) {
+     console.log(err)
+     process.exit(1)
+  }
+}
 
 var aliases = {}
-var collector
-var webserver
+,   receiver
+,   provider
+,   webserver
 
 fs.readFile('./raw.json', 'utf8', (err, res) => {
   if (!err)
@@ -36,29 +33,26 @@ fs.readFile('./raw.json', 'utf8', (err, res) => {
   fs.readFile('./aliases.json', 'utf8', (err, res) => {
     if (!err)
       aliases = JSON.parse(res)
-    init(raw, aliases)
+    init(raw)
   })
 })
 
 function getData() {
-  return _.merge({}, collector.getRaw(), aliases)
+  return _.merge({}, receiver.announced.getRaw(), aliases)
 }
 
 function backupData() {
-  getHosts(fs.createWriteStream('hosts'))
+  provider['hosts'](fs.createWriteStream('hosts'))
 
-  fs.writeFile('raw.json', JSON.stringify(announced.getRaw()), (err) => {
+  fs.writeFile('raw.json', JSON.stringify(receiver.announced.getRaw()), (err) => {
     if (err)
       return console.log(err)
   })
 }
 
-function init(raw, readAliases) {
-  aliases = readAliases
-  collector = require('./modules/receiver/announced')(raw, config)
-  var index = {}
-  _.merge(index, require('./modules/provider/hopglass')(getData, config))
-  _.merge(index, require('./modules/provider/utilities')(getData))
-  webserver = require('./modules/webserver')(index, config)
+function init(raw) {
+  receiver  = require('./modules/receiver')(raw, config.receiver)
+  provider  = require('./modules/provider')(getData, config.provider)
+  webserver = require('./modules/webserver')(provider, config.webserver)
   setInterval(backupData, 60000)
 }

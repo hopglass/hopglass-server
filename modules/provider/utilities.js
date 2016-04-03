@@ -1,4 +1,3 @@
-#!/usr/bin/node
 'use strict'
 
 var async = require('async')

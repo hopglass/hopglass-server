@@ -16,7 +16,7 @@ module.exports = function(raw, config) {
   })
   
   collector.on('listening', function() {
-    console.log('collector listening on port ' + config.collectorport)
+    console.log('collector listening on port ' + config.announced.port)
   })
   
   collector.on('message', function(msg, rinfo) {
@@ -54,14 +54,14 @@ module.exports = function(raw, config) {
   })
   
   function retrieve(stat, address) {
-    var ip = address ? address : config.targetip
+    var ip = address ? address : config.announced.target.ip
     var req = new Buffer('GET ' + stat)
     for (let iface in config.ifaces) {
-      collector.send(req, 0, req.length, config.targetport, ip + '%' + iface)
+      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface)
     }
   }
   
-  collector.bind(config.collectorport)
+  collector.bind(config.announced.port)
   
   retrieve('nodeinfo')
   retrieve('neighbours')
@@ -69,12 +69,12 @@ module.exports = function(raw, config) {
   
   setInterval(function() {
     retrieve('nodeinfo')
-  }, config.nodeinfoInterval * 1000)
+  }, config.announced.interval.nodeinfo * 1000)
   
   setInterval(function() {
     retrieve('neighbours')
     retrieve('statistics')
-  }, config.statisticsInterval * 1000)
+  }, config.announced.interval.statistics * 1000)
   
   function getRaw() {
     return raw

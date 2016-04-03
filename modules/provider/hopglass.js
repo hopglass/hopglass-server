@@ -10,7 +10,7 @@ module.exports = function(getData, config) {
 
   function isOnline(node) {
     if (node)
-      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.nodeinfoInterval * 5000
+      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.hopglass.offlineTime * 1000
     else
       return true
   }
