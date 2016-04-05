@@ -28,7 +28,7 @@ module.exports = function(index, configData) {
       stream.write('404')
       stream.end()
     }
-  }).listen(config.port, config.ip, () => {
+  }).listen(config.port, config.ip, function() {
     console.log('webserver listening on port ' + config.port)
   })
 }

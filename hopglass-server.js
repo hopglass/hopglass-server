@@ -74,9 +74,11 @@ var receiver
 var provider
 var webserver
 
-fs.readFile('./raw.json', 'utf8', function(err, res) {
+fs.readFile(config.core.backup.file, 'utf8', function(err, res) {
   if (!err)
     var raw = JSON.parse(res)
+  else
+    var raw = {}
   fs.readFile('./aliases.json', 'utf8', function(err, res) {
     if (!err)
       aliases = JSON.parse(res)
@@ -98,8 +100,8 @@ function backupData() {
 }
 
 function init(raw) {
-  receiver  = require('./modules/receiver')(raw, config.receiver)
-  provider  = require('./modules/provider')(getData, config.provider)
+  receiver = require('./modules/receiver')(raw, config.receiver)
+  provider = require('./modules/provider')(getData, receiver.announced.getRaw, config.provider)
   webserver = require('./modules/webserver')(provider, config.webserver)
   setInterval(backupData, config.core.backup.interval)
 }

@@ -6,7 +6,7 @@ module.exports = function(raw, config) {
   var _ = require('lodash')
   
   var collector = dgram.createSocket('udp6')
-  var raw = {}
+  var raw = raw
   
   //collector callbacks
   collector.on('error', function(err) {

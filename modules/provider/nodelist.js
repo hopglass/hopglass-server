@@ -21,7 +21,7 @@ module.exports = function(getData, config) {
     nl.version = '1.0.0'
     nl.updated_at = new Date().toISOString()
     nl.nodes = []
-    async.forEachOf(data, (n, k, finished) => {
+    async.forEachOf(data, function(n, k, finished) {
       var node = {}
       node.id = k
       node.name = _.get(n, 'nodeinfo.hostname')
@@ -37,7 +37,7 @@ module.exports = function(getData, config) {
       }
       nl.nodes.push(node)
       finished()
-    }, () => {
+    }, function() {
       stream.write(JSON.stringify(nl))
       stream.end()
     })
