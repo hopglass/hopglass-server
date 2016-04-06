@@ -18,7 +18,7 @@ module.exports = function(getData, getRaw) {
         }, finished1)
       } else
         finished1()
-    }, function(err) {
+    }, function() {
       stream.end()
     })
   }

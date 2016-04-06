@@ -7,7 +7,7 @@ var _ = require('lodash')
 //start with default config
 var config = {
   "core": {
-    "backup": {
+    "storage": {
       "interval": 60000,
       "file": "./raw.json"
     }
@@ -41,44 +41,39 @@ var config = {
 }
 
 var argv = require('minimist')(process.argv.slice(2))
+
+var confFileSpecified = _.has(argv, 'config')
 argv.config = _.get(argv, 'config', './config.json')
 
-var exists = false
-
+//read config file sync
 try {
-  var stat = fs.statSync(argv.config)
-  exists = stat.isFile()
-} catch (err) {}
+  var configFile = JSON.parse(fs.readFileSync(argv.config, 'utf8'))
 
-if (exists) {
-  //read config file sync
-  try {
-    var configFromFile = JSON.parse(fs.readFileSync(argv.config, 'utf8'))
-    if (_.has(configFromFile, 'receiver.ifaces'))
-      config.receiver.ifaces = undefined
-    _.merge(config, configFromFile)
-  } catch (err) {
-    console.log(err)
-    process.exit(1)
-  }
+  if (_.has(configFile, 'receiver.ifaces'))
+    config.receiver.ifaces = undefined
+
+  _.merge(config, configFile)
   console.log("successfully parsed config file '" + argv.config + "'")
-} else {
-  console.log("config file '" + argv.config + "' doesn't exist, using defaults")
+} catch (err) {
+  if (confFileSpecified)
+    throw err
+  else
+    console.log("config file '" + argv.config + "' doesn't exist, using defaults")
 }
 
-exists = undefined
-stat = undefined
+confFileSpecified = undefined
+argv = undefined
 
 var aliases = {}
 var receiver
 var provider
-var webserver
 
-fs.readFile(config.core.backup.file, 'utf8', function(err, res) {
+fs.readFile(config.core.storage.file, 'utf8', function(err, res) {
+  var raw
   if (!err)
-    var raw = JSON.parse(res)
+    raw = JSON.parse(res)
   else
-    var raw = {}
+    raw = {}
   fs.readFile('./aliases.json', 'utf8', function(err, res) {
     if (!err)
       aliases = JSON.parse(res)
@@ -93,7 +88,7 @@ function getData() {
 function backupData() {
   provider['hosts'](fs.createWriteStream('hosts'))
 
-  fs.writeFile(config.core.backup.file, JSON.stringify(receiver.announced.getRaw()), function(err) {
+  fs.writeFile(config.core.storage.file, JSON.stringify(receiver.announced.getRaw()), function(err) {
     if (err)
       return console.log(err)
   })
@@ -102,6 +97,6 @@ function backupData() {
 function init(raw) {
   receiver = require('./modules/receiver')(raw, config.receiver)
   provider = require('./modules/provider')(getData, receiver.announced.getRaw, config.provider)
-  webserver = require('./modules/webserver')(provider, config.webserver)
-  setInterval(backupData, config.core.backup.interval)
+  require('./modules/webserver')(provider, config.webserver)
+  setInterval(backupData, config.core.storage.interval)
 }

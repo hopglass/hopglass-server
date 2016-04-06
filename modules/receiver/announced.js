@@ -3,16 +3,12 @@
 module.exports = function(raw, config) {
   var dgram = require('dgram')
   var zlib = require('zlib')
-  var _ = require('lodash')
   
   var collector = dgram.createSocket('udp6')
-  var raw = raw
   
   //collector callbacks
   collector.on('error', function(err) {
-    console.log(`collector error:\n${err.stack}`)
-    collector.close()
-    process.exit(1)
+    throw(err)
   })
   
   collector.on('listening', function() {
