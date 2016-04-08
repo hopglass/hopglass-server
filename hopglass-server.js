@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 /*  Copyright (C) 2016 Milan Pässler
     Copyright (C) 2016 HopGlass Server contributors
 

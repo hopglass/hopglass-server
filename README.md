@@ -1,45 +1,35 @@
 #HopGlass Server
 The HopGlass Server collects data from Freifunk networks and processes it to be used in [HopGlass](https://github.com/plumpudding/hopglass), for statistics and other purposes.
 
+**Warning: The HopGlass Server is subject to major changes. Updates may require manual intervention.**
+
 ##How to use
 
-Setup is easy:
+**Debian-based systems using systemd (preferred)**
 
-1. Be sure to have a recent version of NodeJS (any version >= 4.x should work) and npm installed
-2. Install dependencies:
-   `npm install`
-3. Start the server:
-   `node hopglass.js [args]`
+**i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-The following options can be supplied either as arguments or in a configuration file specified with `--config FILE`:
-
-|Argument          |Default       |Description|
-|------------------|--------------|---|
-|webip             |:: and 0.0.0.0|webserver listen ip address
-|webport           |4000          |webserver port|
-|iface             |bat0          |the interface to discover nodes on|
-|ifaces            |bat0          |a comma-seperated list of interfaces to discover nodes on|
-|nodeinfointerval  |180           |interval for nodeinfo queries (in seconds, low values can impact mesh performance)|
-|statisticsinterval|60            |interval for statistics and neighbourinfo queries (in seconds, low values can impact mesh performance)|
-|collectorport     |45123         |the port the data collector listens on|
-|targetip          |ff02::2       |IPv6 (usually multicast group) to query|
-|targetport        |1001          |the port to query the nodes on|
+1. Run `$ curl -sL https://raw.githubusercontent.com/plumpudding/hopglass-server/master/scripts/bootstrap.sh | sudo -E bash -`
+2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
+3. Start the HopGlass Server: `$ sudo systemctl start hopglass-server@default`
+4. (Optional) Automatically start the HopGlass Server at boot: `$ sudo systemctl enable hopglass-server@default`
 
 Possible webserver queries
 --------------------------
 
-|Query Location   |Description|
-|-----------------|---|
-|/nodes.json      |Meshviewer nodes.json v2|
-|/graph.json      |Meshviewer graph.json v1|
-|/raw.json        |raw data collected, same as the `raw.json` save file|
-|/hosts           |hosts file|
-|/metrics         |Prometheus metrics|
-|/wifi-aliases.txt|Aliases file for Wifi Analyzer app|
+|Query Location         |Description|
+|---------------------- |---|
+|/nodes.json            |HopGlass nodes.json v2|
+|/graph.json            |HopGlass graph.json v1|
+|/raw.json              |Raw data collected, same as the `raw.json` save file|
+|/hosts                 |hosts file to be placed in /etc/hosts|
+|/metrics               |Prometheus metrics|
+|/wifi-aliases.txt      |Aliases file for Wifi Analyzer app|
+|/WifiAnalyzer_Alias.txt|Aliases file for Wifi Analyzer app|
 
 ##Metrics values
 
-per node (all with labels `hostname` and `nodeid`):
+###per node (all with the labels `hostname`, `nodeid` and `gateway`):
 
 - statistics.clients.total
 - statistics.uptime
@@ -51,7 +41,7 @@ per node (all with labels `hostname` and `nodeid`):
 - statistics.loadavg
 - statistics.memory_usage
 
-total values:
+###total values:
 
 - meshnodes_total
 - meshnodes_online_total
@@ -62,62 +52,49 @@ total values:
 - total_traffic_mgmt_tx
 - total_traffic_forward
 
-##Installation for dummies
+##Manual Installation
 
-This assumes you are running a Debian Jessie (stable) or newer or Ubuntu 14.04 LTS (Trusty Tahr) or newer. 
+**Debian-based systems without systemd with NodeJS 0.10**
 
-**Warning: The HopGlass Server is subject to major changes. Updates may require manual intervention.**
+**i.e. Debian Wheezy or older, Ubuntu 14.10 or older**
 
-###Debian Stretch (testing) or newer / Ubuntu 16.04 or newer
+***Warning: untested, unsupported, not recommanded***
+
+1. Go through the installation process:
 
 ```
+sudo -i
+INSTALL_DIR=/opt/hopglass
+
 #Install NodeJS from distro repositories
-sudo -i
-apt update
-apt install nodejs git
-
-#Create a user
-useradd -mU hopglass
-su - hopglass
-
-#Clone and install dependencies
-git clone https://github.com/plumpudding/hopglass-server
-cd hopglass-server
-npm install
-exit
-
-#Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/sbin/hopglass
-```
-
-###Older Ubuntu or Debian Jessie
-
-```
-#Install NodeJS from external repositories
-sudo -i
-wget -O- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-echo "deb https://deb.nodesource.com/node_5.x $(lsb_release -c -s) main" > /etc/apt/sources.list.d/nodesource.list
-echo "deb-src https://deb.nodesource.com/node_5.x $(lsb_release -c -s) main" >> /etc/apt/sources.list.d/nodesource.list
 apt-get update
-apt-get install nodejs git
+apt-get install nodejs nodejs-legacy npm git -y
 
 #Create a user
-useradd -mU hopglass
-su - hopglass
+adduser --system --home=$INSTALL_DIR --group hopglass
 
 #Clone and install dependencies
-git clone https://github.com/plumpudding/hopglass-server
-cd hopglass-server
+su - hopglass --shell /bin/bash
+git clone https://github.com/plumpudding/hopglass-server server
+cd server
 npm install
 exit
 
-#Create start script:
-echo 'su - hopglass -c "cd hopglass-server; node hopglass-server.js $@"' > /usr/local/sbin/hopglass
+#Create start script and copy default config file:
+mkdir -p /etc/hopglass-server/default
+cp $INSTALL_DIR/server/config.json.example /etc/hopglass-server/default/config.json
+echo 'su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/$1/config.json"' > /usr/local/sbin/hopglass-server
+chmod +x /usr/local/sbin/hopglass-server
+
+exit
 ```
+
+2. Review and edit the default configuration under `/etc/hopglass-server/default/config.json`.
+3. Start the HopGlass Server: `$ sudo hopglass-server default`
+4. (Optionally) Automatically start the HopGlass Server at boot: add `hopglass-server default` to `/etc/rc.local` before `exit 0`.
 
 ##After installation
 
 You might want to
 - Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
 - Install [HopGlass](https://github.com/plumpudding/hopglass)
-- Add "`hopglass`"-command to "on up"-section in your fastd-configuration for the server to start automatically.
