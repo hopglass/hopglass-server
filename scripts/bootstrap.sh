@@ -15,7 +15,7 @@ adduser --system --home=$INSTALL_DIR --group hopglass
 
 #Clone and install dependencies
 su - hopglass --shell /bin/bash
-git clone https://github.com/plumpudding/hopglass-server server
+git clone https://github.com/plumpudding/hopglass-server -b 0.1rc1 server
 cd server
 npm install
 exit
@@ -23,7 +23,7 @@ exit
 #Symlink systemd service and copy config file:
 mkdir -p /etc/hopglass-server/default
 cp $INSTALL_DIR/server/config.json.example /etc/hopglass-server/default/config.json
-ln -s $INSTALL_DIR/server/systemd/hopglass-server@.service /etc/systemd/system/hopglass-server@.service
+ln -s $INSTALL_DIR/server/hopglass-server@.service /etc/systemd/system/hopglass-server@.service
 
 echo 
 echo '######################################################'
