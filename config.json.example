@@ -1,17 +1,26 @@
 {
   "core": {
-    "backup": {
+    "storage": {
       "interval": 60000,
       "file": "./raw.json"
     }
   },
   "receiver": {
     "announced": {
+      "enabled": true,
       "target": {
         "ip": "ff02::1",
         "port": 1001
       },
       "port": 45123,
+      "interval": {
+        "statistics": 60,
+        "nodeinfo": 500
+      }
+    },
+    "alfred": {
+      "enabled": true,
+      "socket": "/var/run/alfred.sock",
       "interval": {
         "statistics": 60,
         "nodeinfo": 500
