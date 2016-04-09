@@ -99,13 +99,14 @@ fs.readFile(config.core.storage.file, 'utf8', function(err, res) {
 })
 
 function getData() {
-  return _.merge({}, receiver.announced.getRaw(), aliases)
+  return _.merge({}, receiver.getRaw(), aliases)
+  //return _.merge({}, receiver.announced.getRaw(), aliases)
 }
 
 function backupData() {
   provider['hosts'](fs.createWriteStream('hosts'))
 
-  fs.writeFile(config.core.storage.file, JSON.stringify(receiver.announced.getRaw()), function(err) {
+  fs.writeFile(config.core.storage.file, JSON.stringify(receiver.getRaw()), function(err) {
     if (err)
       return console.log(err)
   })
@@ -113,7 +114,8 @@ function backupData() {
 
 function init(raw) {
   receiver = require('./modules/receiver')(raw, config.receiver)
-  provider = require('./modules/provider')(getData, receiver.announced.getRaw, config.provider)
+  provider = require('./modules/provider')(getData, receiver.getRaw, config.provider)
+  //provider = require('./modules/provider')(getData, receiver.getRaw, config.provider)
   require('./modules/webserver')(provider, config.webserver)
   setInterval(backupData, config.core.storage.interval)
 }

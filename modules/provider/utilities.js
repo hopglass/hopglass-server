@@ -71,11 +71,11 @@ module.exports = function(getData, getRaw) {
   }
 
   function getDataJson(stream) {
-    stream.write(JSON.stringify(getData()))
+    stream.end(JSON.stringify(getData()))
   }
 
   function getRawJson(stream) {
-    stream.write(JSON.stringify(getRaw()))
+    stream.end(JSON.stringify(getRaw()))
   }
 
   var exports = {}
