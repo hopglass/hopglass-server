@@ -19,8 +19,7 @@
 var async = require('async')
 var _ = require('lodash')
 
-module.exports = function(getData, config) {
-  var data = {}
+module.exports = function(receiver, config) {
 
   function isOnline(node) {
     if (node)
@@ -30,8 +29,9 @@ module.exports = function(getData, config) {
   }
 
   //Prometheus metrics
-  function getMetrics(stream) {
-    data = getData()
+  function getMetrics(stream, query) {
+    stream.writeHead(200, { 'Content-Type': 'text/plain' })
+    var data = receiver.getData(query)
     var save = function(n, id, stream, what, where) {
       if (_.has(n, what))
         stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')

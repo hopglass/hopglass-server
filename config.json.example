@@ -1,10 +1,5 @@
 {
-  "core": {
-    "backup": {
-      "interval": 60000,
-      "file": "./raw.json"
-    }
-  },
+  "core": { },
   "receiver": {
     "announced": {
       "target": {
@@ -17,10 +12,17 @@
         "nodeinfo": 500
       }
     },
+    "aliases": {
+      "file": "./aliases.json"
+    },
     "ifaces": [
       "bat0",
       "enp4s0"
-    ]
+    ],
+    "storage": {
+      "interval": 60000,
+      "file": "./raw.json"
+    }
   },
   "provider": {
     "hopglass": {

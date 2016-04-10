@@ -17,17 +17,22 @@
 'use strict'
 
 var fs = require('fs')
-var _ = require('lodash')
 
-module.exports = function (receiver, config) {
+module.exports = function(config) {
+  var aliases = {}
+
+  try {
+    aliases = JSON.parse(fs.readFileSync(config.aliases.file, 'utf8'))
+  } catch (err) {
+    throw err
+  }
+
+  function getRaw() {
+    return aliases
+  }
 
   var exports = {}
-
-  require('fs').readdirSync(__dirname + '/provider').forEach(function(e, i, a) {
-    var re = /\.js$/
-    if (re.test(e))
-      _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))
-  })
+  exports.getRaw = getRaw
 
   return exports
 }

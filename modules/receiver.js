@@ -16,9 +16,158 @@
 
 'use strict'
 
-module.exports = function (raw, config) {
+var fs = require('fs')
+var _ = require('lodash')
+
+var config = {
+  ifaces: [
+    "bat0",
+    "enp4s0"
+  ],
+  storage: {
+    interval: 60000,
+    file: "./raw.json"
+  }
+}
+
+module.exports = function (configData) {
+  _.merge(config, configData)
+
+  var receiverList = {}
+  var raw = {}
+
+  try {
+    raw = JSON.parse(fs.readFileSync(config.storage.file, 'utf8'))
+  } catch(err) {
+  }
+
+  require('fs').readdirSync(__dirname + '/receiver').forEach(function(e, i, a) {
+    var re = /\.js$/
+    if (re.test(e))
+      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config)
+  })
+
+  function getRaw() {
+    var now = new Date().getTime()
+    if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) {
+      getRaw.lastUpdate = now
+      console.log('getRaw() update')
+      _.forEach(receiverList, function(e, i) {
+        //if (i !== 'aliases') {
+          _.assignWith(raw, e.getRaw(), function(objValue, srcValue) {
+            if (_.isUndefined(objValue)) {
+              return srcValue
+            } else {
+              var srcDate = new Date(srcValue.lastseen)
+              var objDate = new Date(objValue.lastseen)
+              //console.log(srcDate.getTime(), objDate.getTime())
+              if (srcDate.getTime() >= objDate.getTime()) {
+                return srcValue
+              } else {
+                return objValue
+              }
+            }
+          })
+        //}
+      })
+    } else {
+      console.log('getRaw() cached')
+    }
+    return raw
+  }
+
+  function getData(query) {
+    var data = getRaw()
+    //if ('aliases' in receiverList) {
+    //  data = _.merge(data, receiverList['aliases'].getRaw())   // << das ist so echt unschön und muss noch irgendwie gefixed werden!
+    //}
+    if (typeof query === 'object')
+      data = filterData(data, query)
+
+    return data
+  }
+
+  function filterData(data, query) {
+    // filtern anhand der übergebenen Filterwerte
+    switch (query.filter) {
+      case 'site':
+        return _.filter(data, function(o) {
+          return _.get(o, 'nodeinfo.system.site_code', 'unknown') === query.value ? true : false
+        })
+        break
+      case 'firmware_release':
+        return _.filter(data, function(o) {
+          return _.get(o, 'nodeinfo.software.firmware.release', 'unknown') === query.value ? true : false
+        })
+        break
+      case 'firstseen':
+        return _.filter(data, function(o) {
+            var firstseen = (new Date(o.firstseen)).getTime()
+            var now = (new Date()).getTime()
+            var v = parseInt(query.value)*1000
+            if (v >= 0) {
+              return now - firstseen <= v ? true : false           // all nodes seen last n seconds
+            } else {
+              return now - firstseen > Math.abs(v) ? true : false  // all nodes not seen in last n seconds
+            }
+        })
+        break
+      case 'lastseen':
+        return _.filter(data, function(o) {
+            var lastseen = (new Date(o.lastseen)).getTime()
+            var now = (new Date()).getTime()
+            var v = parseInt(query.value)*1000
+            if (v >= 0) {
+              return now - lastseen <= v ? true : false
+            } else {
+              return now - lastseen > Math.abs(v) ? true : false
+            }
+        })
+        break
+      case 'uptime':
+        return _.filter(data, function(o) {
+            var uptime = parseInt(_.get(o, 'statistics.uptime', '-1'))
+            var v = parseInt(query.value)
+            if (v >= 0) {
+              return uptime <= v ? true : false
+            } else {
+              return uptime > Math.abs(v) ? true : false
+            }
+        })
+        break
+      case 'clients':
+        return _.filter(data, function(o) {
+            var clients = parseInt(_.get(o, 'statistics.clients.total', '-1'))
+            var v = parseInt(query.value)
+            if (v >= 0) {
+              return clients >= v ? true : false
+            } else {
+              return clients < Math.abs(v) ? true : false
+            }
+        })
+        break
+      default:
+        return data
+        break
+    }
+  }
+
+  function storeData() {
+    fs.writeFile(config.storage.file, JSON.stringify(getRaw()), function(err) {
+    if (err)
+      return console.error(err)
+    })
+  }
+  setInterval(storeData, config.storage.interval)
+
+  process.on('SIGINT', function () {
+    fs.writeFileSync(config.storage.file, JSON.stringify(getRaw()))  // sync needed to write before killed
+    process.exit(2)
+  });
+
   var exports = {}
-  exports.announced = require('./receiver/announced')(raw, config)
+  exports.getData = getData
+  exports.getRaw  = getRaw
 
   return exports
 }

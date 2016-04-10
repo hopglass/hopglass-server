@@ -16,9 +16,11 @@
 
 'use strict'
 
-module.exports = function(raw, config) {
+module.exports = function(config) {
   var dgram = require('dgram')
   var zlib = require('zlib')
+
+  var raw = {}
   
   var collector = dgram.createSocket('udp6')
   

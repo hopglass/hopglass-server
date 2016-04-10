@@ -19,11 +19,11 @@
 var async = require('async')
 var _ = require('lodash')
 
-module.exports = function(getData, getRaw) {
-  var data = {}
+module.exports = function(receiver) {
 
-  function getHosts(stream) {
-    data = getData()
+  function getHosts(stream, query) {
+    stream.writeHead(200, { 'Content-Type': 'text/plain' })
+    var data = receiver.getData(query)
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'nodeinfo.hostname')) {
         var hostname = _.get(n, 'nodeinfo.hostname', 'unknown').toLowerCase().replace(/[^0-9a-z-_]/g,'')
@@ -39,8 +39,9 @@ module.exports = function(getData, getRaw) {
     })
   }
 
-  function getWifiAliases(stream) {
-    data = getData()
+  function getWifiAliases(stream, query) {
+    stream.writeHead(200, { 'Content-Type': 'text/plain' })
+    var data = receiver.getData(query)
     function write(mac, hostname, primaryMac) {
       stream.write(mac + '|' + hostname + ' (' + primaryMac + ')\n')
     }
@@ -70,12 +71,14 @@ module.exports = function(getData, getRaw) {
     })
   }
 
-  function getDataJson(stream) {
-    stream.write(JSON.stringify(getData()))
+  function getDataJson(stream, query) {
+    stream.writeHead(200, { 'Content-Type': 'application/json' })
+    stream.end(JSON.stringify(receiver.getData(query)))
   }
 
   function getRawJson(stream) {
-    stream.write(JSON.stringify(getRaw()))
+    stream.writeHead(200, { 'Content-Type': 'application/json' })
+    stream.end(JSON.stringify(receiver.getRaw()))
   }
 
   var exports = {}
