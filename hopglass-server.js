@@ -490,7 +490,16 @@ function getMetrics(stream) {
   var counter_traffic_forward = 0
   var counter_clients = 0
   var nodeTable = {}
+  var typeTable = {}
   async.forEachOf(data, (n, k, finished1) => {
+    if (_.has(n, 'nodeinfo.network.mesh'))
+      for (let bat in n.nodeinfo.network.mesh) {
+        for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+          n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+            typeTable[d] = type
+          })
+        }
+      }
     counter_meshnodes_total++
     if (isOnline(n)) {
       counter_meshnodes_online_total++
@@ -535,7 +544,8 @@ function getMetrics(stream) {
               var source_name = _.get(data, [source, 'nodeinfo', 'hostname'], source)
               var target_name = _.get(data, [target, 'nodeinfo', 'hostname'], target)
               stream.write('link_tq{source="' + source + '",target="' + target
-                + '",source_name="' + source_name + '",target_name="' + target_name + '"} ' + tq + '\n')
+                + '",source_name="' + source_name + '",target_name="' + target_name
+                + '",link_type="' + typeTable[dest] + '"} '+ tq + '\n')
             }
         }
       }
