@@ -20,14 +20,12 @@
       "enp4s0"
     ],
     "storage": {
-      "interval": 60000,
+      "interval": 1800,
       "file": "./raw.json"
     }
   },
   "provider": {
-    "hopglass": {
-      "offlineTime": 900
-    }
+    "offlineTime": 900
   },
   "webserver": {
     "ip": "::",

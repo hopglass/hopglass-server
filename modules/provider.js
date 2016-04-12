@@ -19,7 +19,13 @@
 var fs = require('fs')
 var _ = require('lodash')
 
-module.exports = function (receiver, config) {
+
+var config = {
+  "offlineTime": 900
+}
+
+module.exports = function (receiver, configData) {
+  _.merge(config, configData)
 
   var exports = {}
 

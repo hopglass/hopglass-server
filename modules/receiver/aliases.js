@@ -17,8 +17,17 @@
 'use strict'
 
 var fs = require('fs')
+var _ = require('lodash')
 
-module.exports = function(config) {
+var config = {
+  "aliases": {
+    "file": "./aliases.json"
+  }
+}
+
+module.exports = function(configData) {
+  _.merge(config, configData)
+
   var aliases = {}
 
   try {

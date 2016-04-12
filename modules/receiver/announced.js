@@ -16,23 +16,40 @@
 
 'use strict'
 
-module.exports = function(config) {
-  var dgram = require('dgram')
-  var zlib = require('zlib')
+var dgram = require('dgram')
+var zlib = require('zlib')
+var _ = require('lodash')
+
+var config = {
+  "announced": {
+    "target": {
+      "ip": "ff02::1",
+      "port": 1001
+    },
+    "port": 45123,
+    "interval": {
+      "statistics": 60,
+      "nodeinfo": 500
+    }
+  }
+}
+
+module.exports = function(configData) {
+  _.merge(config, configData)
 
   var raw = {}
-  
+
   var collector = dgram.createSocket('udp6')
-  
+
   //collector callbacks
   collector.on('error', function(err) {
     throw(err)
   })
-  
+
   collector.on('listening', function() {
     console.log('collector listening on port ' + config.announced.port)
   })
-  
+
   collector.on('message', function(msg, rinfo) {
     zlib.inflateRaw(msg, function(err, res) {
       if (err) {
@@ -47,12 +64,12 @@ module.exports = function(config) {
         } else if (obj.neighbours) {
           id = obj.neighbours.node_id
         } else return
-  
+
         if (!raw[id]) {
           raw[id] = {}
           raw[id].firstseen = new Date().toISOString()
         }
-  
+
         if (obj.nodeinfo)
           raw[id].nodeinfo = obj.nodeinfo
         else if (obj.statistics)
@@ -66,7 +83,7 @@ module.exports = function(config) {
       }
     })
   })
-  
+
   function retrieve(stat, address) {
     var ip = address ? address : config.announced.target.ip
     var req = new Buffer('GET ' + stat)
@@ -74,22 +91,22 @@ module.exports = function(config) {
       collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface)
     }
   }
-  
+
   collector.bind(config.announced.port)
-  
+
   retrieve('nodeinfo')
   retrieve('neighbours')
   retrieve('statistics')
-  
+
   setInterval(function() {
     retrieve('nodeinfo')
   }, config.announced.interval.nodeinfo * 1000)
-  
+
   setInterval(function() {
     retrieve('neighbours')
     retrieve('statistics')
   }, config.announced.interval.statistics * 1000)
-  
+
   function getRaw() {
     return raw
   }

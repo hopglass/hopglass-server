@@ -50,11 +50,11 @@ module.exports = function(receiver) {
       var parts = mac.split(":").map(function(d) {
         return parseInt(d, 16)
       })
-  
+
       parts[0] = parts[0] + 2 % 255
       parts[1] = parts[1] + 2 % 255
       parts[2] = parts[2] + offset % 255
-  
+
       return parts.map(function(d) {
         var i = d.toString(16)
         return ("0" + i).substr(i.length-1)

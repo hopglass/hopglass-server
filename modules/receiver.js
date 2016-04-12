@@ -25,7 +25,7 @@ var config = {
     "enp4s0"
   ],
   storage: {
-    interval: 60000,
+    interval: 1800,
     file: "./raw.json"
   }
 }
@@ -51,9 +51,9 @@ module.exports = function (configData) {
     var now = new Date().getTime()
     if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) {
       getRaw.lastUpdate = now
-      console.log('getRaw() update')
+//      console.log('getRaw() update')
       _.forEach(receiverList, function(e, i) {
-        //if (i !== 'aliases') {
+//        if (i !== 'aliases') {
           _.assignWith(raw, e.getRaw(), function(objValue, srcValue) {
             if (_.isUndefined(objValue)) {
               return srcValue
@@ -68,7 +68,7 @@ module.exports = function (configData) {
               }
             }
           })
-        //}
+//        }
       })
     } else {
       console.log('getRaw() cached')
@@ -78,9 +78,9 @@ module.exports = function (configData) {
 
   function getData(query) {
     var data = getRaw()
-    //if ('aliases' in receiverList) {
-    //  data = _.merge(data, receiverList['aliases'].getRaw())   // << das ist so echt unschön und muss noch irgendwie gefixed werden!
-    //}
+//    if ('aliases' in receiverList) {
+//      data = _.merge(data, receiverList['aliases'].getRaw())   // << das ist so echt unschön und muss noch irgendwie gefixed werden!
+//    }
     if (typeof query === 'object')
       data = filterData(data, query)
 
@@ -158,7 +158,7 @@ module.exports = function (configData) {
       return console.error(err)
     })
   }
-  setInterval(storeData, config.storage.interval)
+  setInterval(storeData, config.storage.interval*1000)
 
   process.on('SIGINT', function () {
     fs.writeFileSync(config.storage.file, JSON.stringify(getRaw()))  // sync needed to write before killed
