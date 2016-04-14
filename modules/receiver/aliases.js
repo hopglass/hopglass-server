@@ -42,6 +42,7 @@ module.exports = function(configData) {
 
   var exports = {}
   exports.getRaw = getRaw
+  exports.overwrite = true
 
   return exports
 }

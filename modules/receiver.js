@@ -51,16 +51,14 @@ module.exports = function (configData) {
     var now = new Date().getTime()
     if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) {
       getRaw.lastUpdate = now
-//      console.log('getRaw() update')
       _.forEach(receiverList, function(e, i) {
-//        if (i !== 'aliases') {
+        if (!e.overwrite) {
           _.assignWith(raw, e.getRaw(), function(objValue, srcValue) {
             if (_.isUndefined(objValue)) {
               return srcValue
             } else {
               var srcDate = new Date(srcValue.lastseen)
               var objDate = new Date(objValue.lastseen)
-              //console.log(srcDate.getTime(), objDate.getTime())
               if (srcDate.getTime() >= objDate.getTime()) {
                 return srcValue
               } else {
@@ -68,19 +66,20 @@ module.exports = function (configData) {
               }
             }
           })
-//        }
+        }
       })
-    } else {
-      console.log('getRaw() cached')
     }
     return raw
   }
 
   function getData(query) {
     var data = getRaw()
-//    if ('aliases' in receiverList) {
-//      data = _.merge(data, receiverList['aliases'].getRaw())   // << das ist so echt unschön und muss noch irgendwie gefixed werden!
-//    }
+    _.forEach(receiverList, function(e, i) {
+        if (e.overwrite) {
+          data = _.merge(data, e.getRaw())
+        }
+    })
+
     if (typeof query === 'object')
       data = filterData(data, query)
 
