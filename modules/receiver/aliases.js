@@ -33,7 +33,7 @@ module.exports = function(configData) {
   try {
     aliases = JSON.parse(fs.readFileSync(config.aliases.file, 'utf8'))
   } catch (err) {
-    throw err
+    console.warn("alias file '" + argv.aliases.file + "' doesn't exist, using empty")
   }
 
   function getRaw() {

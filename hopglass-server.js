@@ -43,7 +43,7 @@ try {
   _.merge(config, configFile)
   console.info("successfully parsed config file '" + argv.config + "'")
 } catch (err) {
-  console.error("config file '" + argv.config + "' doesn't exist, using defaults")
+  console.warn("config file '" + argv.config + "' doesn't exist, using defaults")
 }
 
 argv = undefined

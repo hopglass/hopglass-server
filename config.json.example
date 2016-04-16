@@ -22,6 +22,10 @@
     "storage": {
       "interval": 1800,
       "file": "./raw.json"
+    },
+    "purge": {
+      "maxAge": 14,
+      "interval": 86400
     }
   },
   "provider": {

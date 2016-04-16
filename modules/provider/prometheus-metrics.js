@@ -75,11 +75,11 @@ module.exports = function(receiver, config) {
         counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
         counter_clients += get(n, 'statistics.clients.total')
       }
-  
+
       if (_.has(n, 'neighbours.batadv') && isOnline(n))
         for (let mac in n.neighbours.batadv)
           nodeTable[mac] = k
-  
+
       finished1()
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {

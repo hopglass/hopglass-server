@@ -18,6 +18,7 @@
 
 var fs = require('fs')
 var _ = require('lodash')
+var async = require('async')
 
 var config = {
   ifaces: [
@@ -27,6 +28,10 @@ var config = {
   storage: {
     interval: 1800,
     file: "./raw.json"
+  },
+  purge: {
+    maxAge: 14,      // in days
+    interval: 86400  //  1 day
   }
 }
 
@@ -49,7 +54,7 @@ module.exports = function (configData) {
 
   function getRaw() {
     var now = new Date().getTime()
-    if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) {
+    if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) { // experimental cache
       getRaw.lastUpdate = now
       _.forEach(receiverList, function(e, i) {
         if (!e.overwrite) {
@@ -150,6 +155,20 @@ module.exports = function (configData) {
         break
     }
   }
+
+  function purgeData() {
+    var now = new Date().getTime()
+    async.forEachOf(raw, function(n, k, finished) {
+      var lastseen = (new Date(n.lastseen)).getTime()
+      if (now - lastseen >= config.purge.maxAge*86400*1000 || typeof n.lastseen === 'undefined') {
+        console.info('purge old node ' + k)
+        delete raw[k]
+      }
+      finished()
+    })
+  }
+  purgeData()
+  setInterval(purgeData, config.purge.interval*1000)
 
   function storeData() {
     fs.writeFile(config.storage.file, JSON.stringify(getRaw()), function(err) {

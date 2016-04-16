@@ -35,7 +35,7 @@ module.exports = function(index, configData) {
 
     for (let path in index) {
       if (url.pathname == '/' + path) {
-        index[path](stream, url.query) // uncomment if provider can handle the query (e.g. {filter: 'site', value: 'ffgc'})
+        index[path](stream, url.query)
         success = true
       }
     }
