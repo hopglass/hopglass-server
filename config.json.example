@@ -3,6 +3,9 @@
     "backup": {
       "interval": 60000,
       "file": "./raw.json"
+    },
+    "aliases": {
+      "file": "./aliases.json"
     }
   },
   "receiver": {
