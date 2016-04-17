@@ -27,6 +27,9 @@ var config = {
     "storage": {
       "interval": 60000,
       "file": "./raw.json"
+    },
+    "aliases": {
+      "file": "./aliases.json"
     }
   },
   "receiver": {
@@ -91,7 +94,7 @@ fs.readFile(config.core.storage.file, 'utf8', function(err, res) {
     raw = JSON.parse(res)
   else
     raw = {}
-  fs.readFile('./aliases.json', 'utf8', function(err, res) {
+  fs.readFile(config.core.aliases.file, 'utf8', function(err, res) {
     if (!err)
       aliases = JSON.parse(res)
     init(raw)
