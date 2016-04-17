@@ -36,6 +36,9 @@ var config = {
 }
 
 module.exports = function (configData) {
+  if (configData.ifaces && configData.ifaces.length > 0)
+    delete config.ifaces
+
   _.merge(config, configData)
 
   var receiverList = {}

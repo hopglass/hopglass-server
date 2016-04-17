@@ -87,9 +87,9 @@ module.exports = function(configData) {
   function retrieve(stat, address) {
     var ip = address ? address : config.announced.target.ip
     var req = new Buffer('GET ' + stat)
-    for (let iface in config.ifaces) {
-      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface)
-    }
+    config.ifaces.forEach(function(e, i) {
+      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + e)
+    })
   }
 
   collector.bind(config.announced.port)
