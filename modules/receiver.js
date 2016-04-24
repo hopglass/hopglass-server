@@ -174,15 +174,20 @@ module.exports = function (configData) {
   setInterval(purgeData, config.purge.interval*1000)
 
   function storeData() {
-    fs.writeFile(config.storage.file, JSON.stringify(getRaw()), function(err) {
-    if (err)
-      return console.error(err)
-    })
+    try {
+      var fn = fs.openSync(config.storage.file + ".tmp", 'w')
+      fs.writeSync(fn, JSON.stringify(getRaw()))
+      fs.fsyncSync(fn) // take care that it was actually written to disk
+      fs.closeSync(fn)
+      fs.renameSync(config.storage.file + ".tmp", config.storage.file) // prevent overwriting with an unfinished backup (happens if disk is full)
+    } catch(err) {
+        return console.error(err)
+    }
   }
   setInterval(storeData, config.storage.interval*1000)
 
   process.on('SIGINT', function () {
-    fs.writeFileSync(config.storage.file, JSON.stringify(getRaw()))  // sync needed to write before killed
+    storeData()
     process.exit(2)
   });
 

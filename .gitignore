@@ -1,4 +1,5 @@
 raw.json
+raw.json.tmp
 raw.json.purged
 aliases.json
 config.json

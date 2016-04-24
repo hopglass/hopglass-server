@@ -27,7 +27,7 @@ module.exports = function(receiver) {
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'nodeinfo.hostname')) {
         var hostname = _.get(n, 'nodeinfo.hostname', 'unknown').toLowerCase().replace(/[^0-9a-z-_]/g,'')
-        async.forEachOf(n.nodeinfo.network.addresses, function(a,l,finished2) {
+        async.forEachOf(_.get(n, 'nodeinfo.network.addresses', []), function(a,l,finished2) {
           if (a.slice(0,4) != 'fe80')
             stream.write((a + ' ' + hostname) + '\n')
           finished2()

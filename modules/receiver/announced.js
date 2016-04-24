@@ -47,6 +47,7 @@ module.exports = function(configData) {
   })
 
   collector.on('listening', function() {
+    collector.setTTL(1) // restrict hop-limit to own subnet / should prevent loops (default was: 64)
     console.log('collector listening on port ' + config.announced.port)
   })
 
