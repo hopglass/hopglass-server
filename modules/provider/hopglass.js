@@ -133,7 +133,14 @@ module.exports = function(receiver, config) {
                 link.target = nodeTable[dest]
                 var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
                 link.tq = 255 / (tq ? tq : 1)
-                link.type = typeTable[dest]
+
+                if (typeTable[src] === 'l2tp')
+                  link.type = 'l2tp'
+                else if (typeTable[dest] === 'tunnel')
+                  link.type = 'fastd'
+                else
+                  link.type = typeTable[dest]
+
                 if (isNaN(link.source)) {
                   //unknown node (not in data) -> create nodeentry
                   createEntry(src)
