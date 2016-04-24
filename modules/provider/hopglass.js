@@ -20,8 +20,7 @@ var async = require('async')
 var _ = require('lodash')
 
 
-module.exports = function(getData, config) {
-  var data = {}
+module.exports = function(receiver, config) {
 
   function isOnline(node) {
     if (node)
@@ -29,7 +28,7 @@ module.exports = function(getData, config) {
     else
       return true
   }
-  
+
   function parsePeerGroup(pg) {
     for (let i in pg) {
       if (i == 'peers') {
@@ -43,9 +42,9 @@ module.exports = function(getData, config) {
       }
     }
   }
-  
-  function getNodesJson(stream) {
-    data = getData()
+
+  function getNodesJson(stream, query) {
+    var data = receiver.getData(query)
     var nJson = {}
     nJson.version = 2
     nJson.nodes = []
@@ -76,13 +75,12 @@ module.exports = function(getData, config) {
       finished()
     }, function() {
       stream.writeHead(200, { 'Content-Type': 'application/json' })
-      stream.write(JSON.stringify(nJson))
-      stream.end()
+      stream.end(JSON.stringify(nJson))
     })
   }
-  
-  function getGraphJson(stream) {
-    data = getData()
+
+  function getGraphJson(stream, query) {
+    var data = receiver.getData(query)
     var gJson = {}
     gJson.timestamp = new Date().toISOString()
     gJson.version = 1
@@ -135,7 +133,14 @@ module.exports = function(getData, config) {
                 link.target = nodeTable[dest]
                 var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
                 link.tq = 255 / (tq ? tq : 1)
-                link.type = typeTable[dest]
+
+                if (typeTable[src] === 'l2tp')
+                  link.type = 'l2tp'
+                else if (typeTable[dest] === 'tunnel')
+                  link.type = 'fastd'
+                else
+                  link.type = typeTable[dest]
+
                 if (isNaN(link.source)) {
                   //unknown node (not in data) -> create nodeentry
                   createEntry(src)
@@ -152,8 +157,7 @@ module.exports = function(getData, config) {
         finished2()
       }, function() {
         stream.writeHead(200, { 'Content-Type': 'application/json' })
-        stream.write(JSON.stringify(gJson))
-        stream.end()
+        stream.end(JSON.stringify(gJson))
       })
     })
   }

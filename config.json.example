@@ -1,10 +1,5 @@
 {
-  "core": {
-    "backup": {
-      "interval": 60000,
-      "file": "./raw.json"
-    }
-  },
+  "core": { },
   "receiver": {
     "announced": {
       "target": {
@@ -17,15 +12,24 @@
         "nodeinfo": 500
       }
     },
+    "aliases": {
+      "file": "./aliases.json"
+    },
     "ifaces": [
       "bat0",
       "enp4s0"
-    ]
+    ],
+    "storage": {
+      "interval": 1800,
+      "file": "./raw.json"
+    },
+    "purge": {
+      "maxAge": 14,
+      "interval": 86400
+    }
   },
   "provider": {
-    "hopglass": {
-      "offlineTime": 900
-    }
+    "offlineTime": 900
   },
   "webserver": {
     "ip": "::",

@@ -58,7 +58,7 @@ Possible webserver queries
 
 **i.e. Debian Wheezy or older, Ubuntu 14.10 or older**
 
-***Warning: untested, unsupported, not recommanded***
+***Warning: untested, unsupported, not recommended***
 
 1. Go through the installation process:
 

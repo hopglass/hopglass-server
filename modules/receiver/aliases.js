@@ -19,21 +19,30 @@
 var fs = require('fs')
 var _ = require('lodash')
 
-
 var config = {
-  "offlineTime": 900
+  "aliases": {
+    "file": "./aliases.json"
+  }
 }
 
-module.exports = function (receiver, configData) {
+module.exports = function(configData) {
   _.merge(config, configData)
 
-  var exports = {}
+  var aliases = {}
 
-  require('fs').readdirSync(__dirname + '/provider').forEach(function(e, i, a) {
-    var re = /\.js$/
-    if (re.test(e))
-      _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))
-  })
+  try {
+    aliases = JSON.parse(fs.readFileSync(config.aliases.file, 'utf8'))
+  } catch (err) {
+    console.warn("alias file '" + argv.aliases.file + "' doesn't exist, using empty")
+  }
+
+  function getRaw() {
+    return aliases
+  }
+
+  var exports = {}
+  exports.getRaw = getRaw
+  exports.overwrite = true
 
   return exports
 }

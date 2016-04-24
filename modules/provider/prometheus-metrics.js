@@ -19,8 +19,7 @@
 var async = require('async')
 var _ = require('lodash')
 
-module.exports = function(getData, config) {
-  var data = {}
+module.exports = function(receiver, config) {
 
   function isOnline(node) {
     if (node)
@@ -30,8 +29,9 @@ module.exports = function(getData, config) {
   }
 
   //Prometheus metrics
-  function getMetrics(stream) {
-    data = getData()
+  function getMetrics(stream, query) {
+    stream.writeHead(200, { 'Content-Type': 'text/plain' })
+    var data = receiver.getData(query)
     var save = function(n, id, stream, what, where) {
       if (_.has(n, what))
         stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
@@ -51,7 +51,17 @@ module.exports = function(getData, config) {
     var counter_traffic_forward = 0
     var counter_clients = 0
     var nodeTable = {}
+    var typeTable = {}
     async.forEachOf(data, function(n, k, finished1) {
+      if (_.has(n, 'nodeinfo.network.mesh')) {
+        for (let bat in n.nodeinfo.network.mesh) {
+          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+            n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
+              typeTable[d] = type
+            })
+          }
+        }
+      }
       counter_meshnodes_total++
       if (isOnline(n)) {
         counter_meshnodes_online_total++
@@ -75,11 +85,11 @@ module.exports = function(getData, config) {
         counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
         counter_clients += get(n, 'statistics.clients.total')
       }
-  
+
       if (_.has(n, 'neighbours.batadv') && isOnline(n))
         for (let mac in n.neighbours.batadv)
           nodeTable[mac] = k
-  
+
       finished1()
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
@@ -96,7 +106,8 @@ module.exports = function(getData, config) {
                 var source_name = _.get(data, [source, 'nodeinfo', 'hostname'], source)
                 var target_name = _.get(data, [target, 'nodeinfo', 'hostname'], target)
                 stream.write('link_tq{source="' + source + '",target="' + target
-                  + '",source_name="' + source_name + '",target_name="' + target_name + '"} ' + tq + '\n')
+                  + '",source_name="' + source_name + '",target_name="' + target_name
+                  + '",link_type="' + typeTable[dest]  + '"} ' + tq + '\n')
               }
           }
         }

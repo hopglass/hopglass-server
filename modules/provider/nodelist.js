@@ -19,8 +19,7 @@
 var async = require('async')
 var _ = require('lodash')
 
-module.exports = function(getData, config) {
-  var data = {}
+module.exports = function(receiver, config) {
 
   function isOnline(node) {
     if (node)
@@ -30,8 +29,8 @@ module.exports = function(getData, config) {
   }
 
   //nodelist.json (yet another format)
-  function getNodelistJson(stream) {
-    data = getData()
+  function getNodelistJson(stream, query) {
+    var data = receiver.getData(query)
     var nl = {}
     nl.version = '1.0.0'
     nl.updated_at = new Date().toISOString()
@@ -53,8 +52,8 @@ module.exports = function(getData, config) {
       nl.nodes.push(node)
       finished()
     }, function() {
-      stream.write(JSON.stringify(nl))
-      stream.end()
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      stream.end(JSON.stringify(nl))
     })
   }
 

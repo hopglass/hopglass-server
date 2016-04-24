@@ -16,21 +16,41 @@
 
 'use strict'
 
-module.exports = function(raw, config) {
-  var dgram = require('dgram')
-  var zlib = require('zlib')
-  
+var dgram = require('dgram')
+var zlib = require('zlib')
+var _ = require('lodash')
+
+var config = {
+  "announced": {
+    "target": {
+      "ip": "ff02::1",
+      "port": 1001
+    },
+    "port": 45123,
+    "interval": {
+      "statistics": 60,
+      "nodeinfo": 500
+    }
+  }
+}
+
+module.exports = function(configData) {
+  _.merge(config, configData)
+
+  var raw = {}
+
   var collector = dgram.createSocket('udp6')
-  
+
   //collector callbacks
   collector.on('error', function(err) {
     throw(err)
   })
-  
+
   collector.on('listening', function() {
+    collector.setTTL(1) // restrict hop-limit to own subnet / should prevent loops (default was: 64)
     console.log('collector listening on port ' + config.announced.port)
   })
-  
+
   collector.on('message', function(msg, rinfo) {
     zlib.inflateRaw(msg, function(err, res) {
       if (err) {
@@ -45,12 +65,12 @@ module.exports = function(raw, config) {
         } else if (obj.neighbours) {
           id = obj.neighbours.node_id
         } else return
-  
+
         if (!raw[id]) {
           raw[id] = {}
           raw[id].firstseen = new Date().toISOString()
         }
-  
+
         if (obj.nodeinfo)
           raw[id].nodeinfo = obj.nodeinfo
         else if (obj.statistics)
@@ -58,36 +78,36 @@ module.exports = function(raw, config) {
         else if (obj.neighbours)
           raw[id].neighbours = obj.neighbours
         raw[id].lastseen = new Date().toISOString()
-        if (obj.statistics || obj.neighbours && !raw[id].nodeinfo) {
+        if ((obj.statistics || obj.neighbours) && !raw[id].nodeinfo) { // request nodeinfo if only received statistics or neighbours (speedup for new nodes)
           retrieve('nodeinfo', rinfo.address)
         }
       }
     })
   })
-  
+
   function retrieve(stat, address) {
     var ip = address ? address : config.announced.target.ip
     var req = new Buffer('GET ' + stat)
-    for (let iface in config.ifaces) {
-      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface)
-    }
+    config.ifaces.forEach(function(e, i) {
+      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + e)
+    })
   }
-  
+
   collector.bind(config.announced.port)
-  
+
   retrieve('nodeinfo')
   retrieve('neighbours')
   retrieve('statistics')
-  
+
   setInterval(function() {
     retrieve('nodeinfo')
   }, config.announced.interval.nodeinfo * 1000)
-  
+
   setInterval(function() {
     retrieve('neighbours')
     retrieve('statistics')
   }, config.announced.interval.statistics * 1000)
-  
+
   function getRaw() {
     return raw
   }

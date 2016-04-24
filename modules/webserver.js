@@ -30,11 +30,12 @@ module.exports = function(index, configData) {
   http.createServer(function(req, stream) {
     stream.setHeader('Access-Control-Allow-Origin', '*')
 
+    var url = require("url").parse(req.url, true) // true to get query as object
     var success = false
 
     for (let path in index) {
-      if (req.url == '/' + path) {
-        index[path](stream)
+      if (url.pathname == '/' + path) {
+        index[path](stream, url.query)
         success = true
       }
     }
