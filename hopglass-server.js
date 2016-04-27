@@ -221,6 +221,8 @@ function getWifiAliases(stream) {
       return ("0" + i).substr(i.length-1)
     }).join(":")
   }
+  stream.write('# WifiAnalyzer Alias-Include\n')
+  stream.write('# ' + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + '\n')
   async.forEachOf(_.filter(data, 'nodeinfo.network.mac'), (n, k, finished1) => {
     var hostname = _.get(n, 'nodeinfo.hostname', 'unknown')
     var mac = _.get(n, 'nodeinfo.network.mac')
