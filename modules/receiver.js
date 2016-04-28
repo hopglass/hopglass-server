@@ -191,6 +191,11 @@ module.exports = function (configData) {
     process.exit(2)
   });
 
+  process.on('SIGTERM', function () { // systemd kills with SIGTERM
+    storeData()
+    process.exit(0)
+  });
+
   var exports = {}
   exports.getData = getData
   exports.getRaw  = getRaw
