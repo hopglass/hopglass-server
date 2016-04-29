@@ -21,6 +21,7 @@ var zlib = require('zlib')
 var _ = require('lodash')
 
 var config = {
+  /* eslint-disable quotes */
   "announced": {
     "target": {
       "ip": "ff02::1",
@@ -88,8 +89,8 @@ module.exports = function(configData) {
   function retrieve(stat, address) {
     var ip = address ? address : config.announced.target.ip
     var req = new Buffer('GET ' + stat)
-    config.ifaces.forEach(function(e, i) {
-      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + e, function (err) {
+    config.ifaces.forEach(function(iface) {
+      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface, function (err) {
         if (err) console.error(err)
       })
     })

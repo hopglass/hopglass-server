@@ -40,7 +40,7 @@ module.exports = function(receiver, config) {
       if (_.has(n, what))
         return _.get(n, what)
       else
-        return 0;
+        return 0
     }
     var counter_meshnodes_online_total = 0
     var counter_meshnodes_total = 0
@@ -66,7 +66,7 @@ module.exports = function(receiver, config) {
       if (isOnline(n)) {
         counter_meshnodes_online_total++
         if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
-          var id = '{hostname="' + _.get(n, 'nodeinfo.hostname',"") + '",nodeid="' + k + '",gateway="' + _.get(n, 'statistics.gateway') + '"}'
+          var id = '{hostname="' + _.get(n, 'nodeinfo.hostname','') + '",nodeid="' + k + '",gateway="' + _.get(n, 'statistics.gateway') + '"}'
           save(n, id, stream, 'statistics.clients.total')
           save(n, id, stream, 'statistics.uptime')
           save(n, id, stream, 'statistics.traffic.rx.bytes')

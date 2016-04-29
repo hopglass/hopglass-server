@@ -21,12 +21,12 @@ var _ = require('lodash')
 var async = require('async')
 
 var config = {
+  /* eslint-disable quotes */
   ifaces: [
-    "bat0",
-    "enp4s0"
+    "bat0"
   ],
   storage: {
-    interval: 1800,
+    interval: 300,
     file: "./raw.json"
   },
   purge: {
@@ -47,9 +47,10 @@ module.exports = function (configData) {
   try {
     raw = JSON.parse(fs.readFileSync(config.storage.file, 'utf8'))
   } catch(err) {
+    console.log(err)
   }
 
-  require('fs').readdirSync(__dirname + '/receiver').forEach(function(e, i, a) {
+  require('fs').readdirSync(__dirname + '/receiver').forEach(function(e) {
     var re = /\.js$/
     if (re.test(e))
       receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config)
@@ -59,7 +60,7 @@ module.exports = function (configData) {
     var now = new Date().getTime()
     if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) { // experimental cache
       getRaw.lastUpdate = now
-      _.forEach(receiverList, function(e, i) {
+      _.forEach(receiverList, function(e) {
         if (!e.overwrite) {
           _.assignWith(raw, e.getRaw(), function(objValue, srcValue) {
             if (_.isUndefined(objValue)) {
@@ -82,10 +83,10 @@ module.exports = function (configData) {
 
   function getData(query) {
     var data = getRaw()
-    _.forEach(receiverList, function(e, i) {
-        if (e.overwrite) {
-          data = _.merge(data, e.getRaw())
-        }
+    _.forEach(receiverList, function(e) {
+      if (e.overwrite) {
+        data = _.merge(data, e.getRaw())
+      }
     })
 
     if (typeof query === 'object')
@@ -97,65 +98,58 @@ module.exports = function (configData) {
   function filterData(data, query) {
     // filtern anhand der übergebenen Filterwerte
     switch (query.filter) {
-      case 'site':
-        return _.filter(data, function(o) {
-          return _.get(o, 'nodeinfo.system.site_code', 'unknown') === query.value ? true : false
-        })
-        break
-      case 'firmware_release':
-        return _.filter(data, function(o) {
-          return _.get(o, 'nodeinfo.software.firmware.release', 'unknown') === query.value ? true : false
-        })
-        break
-      case 'firstseen':
-        return _.filter(data, function(o) {
-            var firstseen = (new Date(o.firstseen)).getTime()
-            var now = (new Date()).getTime()
-            var v = parseInt(query.value)*1000
-            if (v >= 0) {
-              return now - firstseen <= v ? true : false           // all nodes seen last n seconds
-            } else {
-              return now - firstseen > Math.abs(v) ? true : false  // all nodes not seen in last n seconds
-            }
-        })
-        break
-      case 'lastseen':
-        return _.filter(data, function(o) {
-            var lastseen = (new Date(o.lastseen)).getTime()
-            var now = (new Date()).getTime()
-            var v = parseInt(query.value)*1000
-            if (v >= 0) {
-              return now - lastseen <= v ? true : false
-            } else {
-              return now - lastseen > Math.abs(v) ? true : false
-            }
-        })
-        break
-      case 'uptime':
-        return _.filter(data, function(o) {
-            var uptime = parseInt(_.get(o, 'statistics.uptime', '-1'))
-            var v = parseInt(query.value)
-            if (v >= 0) {
-              return uptime <= v ? true : false
-            } else {
-              return uptime > Math.abs(v) ? true : false
-            }
-        })
-        break
-      case 'clients':
-        return _.filter(data, function(o) {
-            var clients = parseInt(_.get(o, 'statistics.clients.total', '-1'))
-            var v = parseInt(query.value)
-            if (v >= 0) {
-              return clients >= v ? true : false
-            } else {
-              return clients < Math.abs(v) ? true : false
-            }
-        })
-        break
-      default:
-        return data
-        break
+    case 'site':
+      return _.filter(data, function(o) {
+        return _.get(o, 'nodeinfo.system.site_code', 'unknown') === query.value ? true : false
+      })
+    case 'firmware_release':
+      return _.filter(data, function(o) {
+        return _.get(o, 'nodeinfo.software.firmware.release', 'unknown') === query.value ? true : false
+      })
+    case 'firstseen':
+      return _.filter(data, function(o) {
+        var firstseen = (new Date(o.firstseen)).getTime()
+        var now = (new Date()).getTime()
+        var v = parseInt(query.value)*1000
+        if (v >= 0) {
+          return now - firstseen <= v ? true : false           // all nodes seen last n seconds
+        } else {
+          return now - firstseen > Math.abs(v) ? true : false  // all nodes not seen in last n seconds
+        }
+      })
+    case 'lastseen':
+      return _.filter(data, function(o) {
+        var lastseen = (new Date(o.lastseen)).getTime()
+        var now = (new Date()).getTime()
+        var v = parseInt(query.value)*1000
+        if (v >= 0) {
+          return now - lastseen <= v ? true : false
+        } else {
+          return now - lastseen > Math.abs(v) ? true : false
+        }
+      })
+    case 'uptime':
+      return _.filter(data, function(o) {
+        var uptime = parseInt(_.get(o, 'statistics.uptime', '-1'))
+        var v = parseInt(query.value)
+        if (v >= 0) {
+          return uptime <= v ? true : false
+        } else {
+          return uptime > Math.abs(v) ? true : false
+        }
+      })
+    case 'clients':
+      return _.filter(data, function(o) {
+        var clients = parseInt(_.get(o, 'statistics.clients.total', '-1'))
+        var v = parseInt(query.value)
+        if (v >= 0) {
+          return clients >= v ? true : false
+        } else {
+          return clients < Math.abs(v) ? true : false
+        }
+      })
+    default:
+      return data
     }
   }
 
@@ -175,13 +169,13 @@ module.exports = function (configData) {
 
   function storeData() {
     try {
-      var fn = fs.openSync(config.storage.file + ".tmp", 'w')
+      var fn = fs.openSync(config.storage.file + '.tmp', 'w')
       fs.writeSync(fn, JSON.stringify(getRaw()))
       fs.fsyncSync(fn) // take care that it was actually written to disk
       fs.closeSync(fn)
-      fs.renameSync(config.storage.file + ".tmp", config.storage.file) // prevent overwriting with an unfinished backup (happens if disk is full)
+      fs.renameSync(config.storage.file + '.tmp', config.storage.file) // prevent overwriting with an unfinished backup (happens if disk is full)
     } catch(err) {
-        return console.error(err)
+      console.error(err)
     }
   }
   setInterval(storeData, config.storage.interval*1000)
@@ -189,12 +183,12 @@ module.exports = function (configData) {
   process.on('SIGINT', function () {
     storeData()
     process.exit(2)
-  });
+  })
 
   process.on('SIGTERM', function () { // systemd kills with SIGTERM
     storeData()
     process.exit(0)
-  });
+  })
 
   var exports = {}
   exports.getData = getData

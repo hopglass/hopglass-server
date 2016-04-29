@@ -61,22 +61,22 @@ function filter(node, callback) {
   async.forEachOfSeries(argv.value, function(element, index, finished) {
 
     switch (argv.type) {
-      case 'site':
-        if (_.get(node, 'nodeinfo.system.site_code', element) == element)
-          out = true
-        break
-      case 'node':
-        if (_.get(node, 'nodeinfo.node_id', element) == element)
-          out = true
-        break
-      case 'offline':
-        var lastseen = (new Date(_.get(node, 'lastseen', 0))).getTime()
-        var v = _.toNumber(element)*86400*1000
-        if (now - lastseen >= v)
-          out = true
-        break
-      default:
-        return callback(false, 'unknown type \'' + argv.type + '\'\n')
+    case 'site':
+      if (_.get(node, 'nodeinfo.system.site_code', element) == element)
+        out = true
+      break
+    case 'node':
+      if (_.get(node, 'nodeinfo.node_id', element) == element)
+        out = true
+      break
+    case 'offline':
+      var lastseen = (new Date(_.get(node, 'lastseen', 0))).getTime()
+      var v = _.toNumber(element)*86400*1000
+      if (now - lastseen >= v)
+        out = true
+      break
+    default:
+      return callback(false, 'unknown type \'' + argv.type + '\'\n')
     }
 
     finished()

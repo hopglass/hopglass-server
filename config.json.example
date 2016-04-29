@@ -16,11 +16,10 @@
       "file": "./aliases.json"
     },
     "ifaces": [
-      "bat0",
-      "enp4s0"
+      "bat0"
     ],
     "storage": {
-      "interval": 1800,
+      "interval": 300,
       "file": "./raw.json"
     },
     "purge": {

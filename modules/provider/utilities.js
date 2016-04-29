@@ -47,7 +47,7 @@ module.exports = function(receiver) {
     }
     function getAPMac(mac, offset) {
       //thanks to pixelistik
-      var parts = mac.split(":").map(function(d) {
+      var parts = mac.split(':').map(function(d) {
         return parseInt(d, 16)
       })
 
@@ -57,14 +57,14 @@ module.exports = function(receiver) {
 
       return parts.map(function(d) {
         var i = d.toString(16)
-        return ("0" + i).substr(i.length-1)
-      }).join(":")
+        return ('0' + i).substr(i.length-1)
+      }).join(':')
     }
     async.forEachOf(_.filter(data, 'nodeinfo.network.mac'), function(n, k, finished1) {
       var hostname = _.get(n, 'nodeinfo.hostname', 'unknown')
       var mac = _.get(n, 'nodeinfo.network.mac')
       write(getAPMac(mac, 1), hostname, mac)
-      write(getAPMac(mac, 2), hostname + " (5GHz)", mac)
+      write(getAPMac(mac, 2), hostname + ' (5GHz)', mac)
       finished1()
     }, function() {
       stream.end()
@@ -81,11 +81,12 @@ module.exports = function(receiver) {
     stream.end(JSON.stringify(receiver.getRaw()))
   }
 
-  var exports = {}
-  exports['WifiAnalyzer_Alias.txt'] = getWifiAliases
-  exports['wifi-aliases.txt'] = getWifiAliases
-  exports['data.json'] = getDataJson
-  exports['raw.json'] = getRawJson
-  exports['hosts'] = getHosts
-  return exports
+  return {
+    /* eslint-disable quotes */
+    "WifiAnalyzer_Alias.txt": getWifiAliases,
+    "wifi-aliases.txt": getWifiAliases,
+    "data.json": getDataJson,
+    "raw.json": getRawJson,
+    "hosts": getHosts
+  }
 }

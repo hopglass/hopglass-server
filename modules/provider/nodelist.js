@@ -58,6 +58,7 @@ module.exports = function(receiver, config) {
   }
 
   return {
+    /* eslint-disable quotes */
     "nodelist.json": getNodelistJson
   }
 }

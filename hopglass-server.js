@@ -23,6 +23,7 @@ var _ = require('lodash')
 
 //start with default config
 var config = {
+  /* eslint-disable quotes */
   "core": { },
   "receiver": { },
   "provider": { },
@@ -41,9 +42,9 @@ try {
     config.receiver.ifaces = undefined
 
   _.merge(config, configFile)
-  console.info("successfully parsed config file '" + argv.config + "'")
+  console.info('successfully parsed config file "' + argv.config + '"')
 } catch (err) {
-  console.warn("config file '" + argv.config + "' doesn't exist, using defaults")
+  console.warn('config file "' + argv.config + '" doesn\'t exist, using defaults')
 }
 
 argv = undefined

@@ -162,8 +162,10 @@ module.exports = function(receiver, config) {
     })
   }
 
-  var exports = {}
-  exports['nodes.json'] = getNodesJson
-  exports['graph.json'] = getGraphJson
+  var exports = {
+    /* eslint-disable quotes */
+    "nodes.json": getNodesJson,
+    "graph.json": getGraphJson
+  }
   return exports
 }

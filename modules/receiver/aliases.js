@@ -20,6 +20,7 @@ var fs = require('fs')
 var _ = require('lodash')
 
 var config = {
+  /* eslint-disable quotes */
   "aliases": {
     "file": "./aliases.json"
   }
@@ -33,7 +34,7 @@ module.exports = function(configData) {
   try {
     aliases = JSON.parse(fs.readFileSync(config.aliases.file, 'utf8'))
   } catch (err) {
-    console.warn("alias file '" + config.aliases.file + "' doesn't exist, using empty")
+    console.warn('alias file "' + config.aliases.file + '" doesn\'t exist, using empty')
   }
 
   function getRaw() {
