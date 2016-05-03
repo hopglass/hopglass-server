@@ -62,7 +62,9 @@ module.exports = function (configData) {
       getRaw.lastUpdate = now
       _.forEach(receiverList, function(e) {
         if (!e.overwrite) {
-          _.assignWith(raw, e.getRaw(), function(objValue, srcValue) {
+          var firstseenTmp = {}
+          _.assignWith(raw, e.getRaw(), function(objValue, srcValue, key) {
+            firstseenTmp[key] = { "firstseen": _.get(objValue, 'firstseen', srcValue.firstseen) }
             if (_.isUndefined(objValue)) {
               return srcValue
             } else {
@@ -75,6 +77,7 @@ module.exports = function (configData) {
               }
             }
           })
+          _.merge(raw, firstseenTmp)
         }
       })
     }
