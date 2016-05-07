@@ -9,7 +9,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-1. Run `$ curl -sL https://raw.githubusercontent.com/plumpudding/hopglass-server/0.1rc1/scripts/bootstrap.sh | sudo -E bash -`
+1. Run `$ curl -sL https://raw.githubusercontent.com/plumpudding/hopglass-server/modules/scripts/bootstrap.sh | sudo -E bash -`
 2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
 3. Start the HopGlass Server: `$ sudo systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `$ sudo systemctl enable hopglass-server@default`

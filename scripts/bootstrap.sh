@@ -15,7 +15,7 @@ adduser --system --home=$INSTALL_DIR --group hopglass
 
 #Clone and install dependencies
 su - hopglass --shell /bin/bash
-git clone https://github.com/plumpudding/hopglass-server -b 0.1rc1 server
+git clone https://github.com/plumpudding/hopglass-server -b modules server
 cd server
 npm install
 exit
