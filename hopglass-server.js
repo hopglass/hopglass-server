@@ -495,6 +495,8 @@ function getMetrics(stream) {
       if (_.has(n, what))
         value = _.get(n, what)
     }
+    if (isNaN(value))
+      value = 0
     stream.write(what.replace(/\./g, '_') + id + ' ' +  value + '\n')
   }
   function get(n, what) {
@@ -540,15 +542,16 @@ function getMetrics(stream) {
         save(n, stream, labels, 'statistics_memory_usage',
              (_.get(n, 'statistics.memory.total') - _.get(n, 'statistics.memory.free')) / _.get(n, 'statistics.memory.total', -1))
 
-        labels["type"] = 'forward'
+        labels["type"]  = 'forward'
+        labels["mtype"] = 'user'
         save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.forward.bytes'))
-        labels["type"] = 'rx'
+        labels["type"]  = 'rx'
         save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.rx.bytes'))
-        labels["type"] = 'tx'
+        labels["type"]  = 'tx'
         save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.tx.bytes'))
-        labels["mgmt"] = 'true'
+        labels["mtype"] = 'mgmt'
         save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.mgmt_tx.bytes'))
-        labels["type"] = 'rx'
+        labels["type"]  = 'rx'
         save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.mgmt_rx.bytes'))
       }
       counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
@@ -591,15 +594,16 @@ function getMetrics(stream) {
       stream.write('total_clients ' + counter_clients + '\n')
 
       var labels = [];
-      labels["type"] = 'forward'
+      labels["type"]  = 'forward'
+      labels["mtype"] = 'user'
       save(null, stream, labels, 'total_traffic', counter_traffic_forward)
-      labels["type"] = 'rx'
+      labels["type"]  = 'rx'
       save(null, stream, labels, 'total_traffic', counter_traffic_rx)
-      labels["type"] = 'tx'
+      labels["type"]  = 'tx'
       save(null, stream, labels, 'total_traffic', counter_traffic_tx)
-      labels["mgmt"] = 'true'
+      labels["mtype"] = 'mgmt'
       save(null, stream, labels, 'total_traffic', counter_traffic_mgmt_tx)
-      labels["type"] = 'rx'
+      labels["type"]  = 'rx'
       save(null, stream, labels, 'total_traffic', counter_traffic_mgmt_rx)
 
       stream.end()
