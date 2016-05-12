@@ -53,34 +53,24 @@ module.exports = function (configData) {
   require('fs').readdirSync(__dirname + '/receiver').forEach(function(e) {
     var re = /\.js$/
     if (re.test(e))
-      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config)
+      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config, receiver_Callback)
   })
 
-  function getRaw() {
-    var now = new Date().getTime()
-    if (typeof getRaw.lastUpdate === 'undefined' || now - getRaw.lastUpdate >= 10*1000) { // experimental cache
-      getRaw.lastUpdate = now
-      _.forEach(receiverList, function(e) {
-        if (!e.overwrite) {
-          var firstseenTmp = {}
-          _.assignWith(raw, e.getRaw(), function(objValue, srcValue, key) {
-            firstseenTmp[key] = { "firstseen": _.get(objValue, 'firstseen', srcValue.firstseen) }
-            if (_.isUndefined(objValue)) {
-              return srcValue
-            } else {
-              var srcDate = new Date(srcValue.lastseen)
-              var objDate = new Date(objValue.lastseen)
-              if (srcDate.getTime() >= objDate.getTime()) {
-                return srcValue
-              } else {
-                return objValue
-              }
-            }
-          })
-          _.merge(raw, firstseenTmp)
-        }
-      })
+  function receiver_Callback(id, obj) {
+    if (!raw[id]) {
+      raw[id] = {}
+      raw[id].firstseen = new Date().toISOString()
     }
+    raw[id].lastseen = new Date().toISOString()
+    {
+      var tmp = {}
+      tmp[id] = obj
+
+      _.merge(raw, tmp)
+    }
+  }
+
+  function getRaw() {
     return raw
   }
 

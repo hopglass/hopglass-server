@@ -35,10 +35,9 @@ var config = {
   }
 }
 
-module.exports = function(configData) {
+module.exports = function(configData, receiver_Callback) {
   _.merge(config, configData)
 
-  var raw = {}
 
   var collector = dgram.createSocket('udp6')
 
@@ -67,21 +66,7 @@ module.exports = function(configData) {
           id = obj.neighbours.node_id
         } else return
 
-        if (!raw[id]) {
-          raw[id] = {}
-          raw[id].firstseen = new Date().toISOString()
-        }
-
-        if (obj.nodeinfo)
-          raw[id].nodeinfo = obj.nodeinfo
-        else if (obj.statistics)
-          raw[id].statistics = obj.statistics
-        else if (obj.neighbours)
-          raw[id].neighbours = obj.neighbours
-        raw[id].lastseen = new Date().toISOString()
-        if ((obj.statistics || obj.neighbours) && !raw[id].nodeinfo) { // request nodeinfo if only received statistics or neighbours (speedup for new nodes)
-          retrieve('nodeinfo', rinfo.address)
-        }
+        receiver_Callback(id, obj)
       }
     })
   })
@@ -111,12 +96,7 @@ module.exports = function(configData) {
     retrieve('statistics')
   }, config.announced.interval.statistics * 1000)
 
-  function getRaw() {
-    return raw
-  }
-
   var exports = {}
-  exports.getRaw = getRaw
 
   return exports
 }
