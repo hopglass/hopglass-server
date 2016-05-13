@@ -58,16 +58,18 @@ module.exports = function(receiver, config) {
         node.flags.online = isOnline(n)
         node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
         node.statistics = {}
-        node.statistics.uptime = _.get(n, 'statistics.uptime')
-        node.statistics.gateway = _.get(n, 'statistics.gateway')
-        if (_.has(n, 'statistics.memory'))
-          node.statistics.memory_usage =
-              (_.get(n, 'statistics.memory.total', 0)
-             - _.get(n, 'statistics.memory.free', 0))
-             / _.get(n, 'statistics.memory.total', 0)
-        node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
-        node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
-        node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+        if (node.flags.online) {
+          node.statistics.uptime = _.get(n, 'statistics.uptime')
+          node.statistics.gateway = _.get(n, 'statistics.gateway')
+          if (_.has(n, 'statistics.memory'))
+            node.statistics.memory_usage =
+                (_.get(n, 'statistics.memory.total', 0)
+              - _.get(n, 'statistics.memory.free', 0))
+              / _.get(n, 'statistics.memory.total', 0)
+          node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
+          node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
+          node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+        }
         node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
         node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
         nJson.nodes.push(node)
