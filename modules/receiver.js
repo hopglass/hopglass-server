@@ -62,12 +62,10 @@ module.exports = function (configData) {
       raw[id].firstseen = new Date().toISOString()
     }
     raw[id].lastseen = new Date().toISOString()
-    {
-      var tmp = {}
-      tmp[id] = obj
 
-      _.merge(raw, tmp)
-    }
+    _.forEach(obj, function(n, k) {
+      raw[id][k] = n
+    })
   }
 
   function getRaw() {
