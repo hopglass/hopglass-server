@@ -480,9 +480,24 @@ function getFfmapJson(stream) {
 
 function getMetrics(stream) {
   getData()
-  var save = (n, id, stream, what, where) => {
-    if (_.has(n, what))
-      stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
+  var save = (n, stream, labels, what, value) => {
+    var id = '{'
+    var first = true
+    for (var e in labels) {
+      if (first)
+        first = false
+      else
+        id += ','
+      id += e + '="' + labels[e] + '"'
+    }
+    id += "}"
+    if (!value) {
+      if (_.has(n, what))
+        value = _.get(n, what)
+    }
+    if (isNaN(value))
+      value = 0
+    stream.write(what.replace(/\./g, '_') + id + ' ' +  value + '\n')
   }
   function get(n, what) {
     if (_.has(n, what))
@@ -512,18 +527,32 @@ function getMetrics(stream) {
     counter_meshnodes_total++
     if (isOnline(n)) {
       counter_meshnodes_online_total++
-      if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
-        var id = '{hostname="' + _.get(n, 'nodeinfo.hostname',"") + '",nodeid="' + k + '",gateway="' + _.get(n, 'statistics.gateway') + '"}'
-        save(n, id, stream, 'statistics.clients.total')
-        save(n, id, stream, 'statistics.uptime')
-        save(n, id, stream, 'statistics.traffic.rx.bytes')
-        save(n, id, stream, 'statistics.traffic.mgmt_rx.bytes')
-        save(n, id, stream, 'statistics.traffic.tx.bytes')
-        save(n, id, stream, 'statistics.traffic.mgmt_tx.bytes')
-        save(n, id, stream, 'statistics.traffic.forward.bytes')
-        save(n, id, stream, 'statistics.loadavg')
-        if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
-          stream.write('statistics_memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
+      if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway')) {
+
+        var labels = [];
+        labels["hostname"] = _.get(n, 'nodeinfo.hostname',"");
+        labels["nodeid"]   = k;
+        labels["gateway"]  = _.get(n, 'statistics.gateway');
+
+        save(n, stream, labels, 'statistics.clients.total')
+        save(n, stream, labels, 'statistics.uptime')
+        save(n, stream, labels, 'statistics.loadavg')
+        save(n, stream, labels, 'statistics.rootfs_usage')
+
+        save(n, stream, labels, 'statistics_memory_usage',
+             (_.get(n, 'statistics.memory.total') - _.get(n, 'statistics.memory.free')) / _.get(n, 'statistics.memory.total', -1))
+
+        labels["type"]  = 'forward'
+        labels["mtype"] = 'user'
+        save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.forward.bytes'))
+        labels["type"]  = 'rx'
+        save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.rx.bytes'))
+        labels["type"]  = 'tx'
+        save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.tx.bytes'))
+        labels["mtype"] = 'mgmt'
+        save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.mgmt_tx.bytes'))
+        labels["type"]  = 'rx'
+        save(n, stream, labels, 'statistics.traffic', _.get(n, 'statistics.traffic.mgmt_rx.bytes'))
       }
       counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
       counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
@@ -563,11 +592,20 @@ function getMetrics(stream) {
       stream.write('meshnodes_total ' + counter_meshnodes_total + '\n')
       stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
       stream.write('total_clients ' + counter_clients + '\n')
-      stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
-      stream.write('total_traffic_mgmt_rx ' + counter_traffic_mgmt_rx + '\n')
-      stream.write('total_traffic_tx ' + counter_traffic_tx + '\n')
-      stream.write('total_traffic_mgmt_tx ' + counter_traffic_mgmt_tx + '\n')
-      stream.write('total_traffic_forward ' + counter_traffic_forward + '\n')
+
+      var labels = [];
+      labels["type"]  = 'forward'
+      labels["mtype"] = 'user'
+      save(null, stream, labels, 'total_traffic', counter_traffic_forward)
+      labels["type"]  = 'rx'
+      save(null, stream, labels, 'total_traffic', counter_traffic_rx)
+      labels["type"]  = 'tx'
+      save(null, stream, labels, 'total_traffic', counter_traffic_tx)
+      labels["mtype"] = 'mgmt'
+      save(null, stream, labels, 'total_traffic', counter_traffic_mgmt_tx)
+      labels["type"]  = 'rx'
+      save(null, stream, labels, 'total_traffic', counter_traffic_mgmt_rx)
+
       stream.end()
     })
   })
