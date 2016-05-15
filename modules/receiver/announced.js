@@ -51,7 +51,7 @@ module.exports = function(configData, receiver_Callback) {
     console.log('collector listening on port ' + config.announced.port)
   })
 
-  collector.on('message', function(msg, rinfo) {
+  collector.on('message', function(msg) {
     zlib.inflateRaw(msg, function(err, res) {
       if (err) {
         console.log('ERR: ' + err)
