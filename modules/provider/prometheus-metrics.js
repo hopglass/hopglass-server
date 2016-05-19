@@ -91,30 +91,31 @@ module.exports = function(receiver, config) {
 
           labels['mtype'] = 'user'
           labels['type'] = 'rx'
-          save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics.traffic')
+          save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics_traffic')
           labels['type'] = 'tx'
-          save(n, stream, labels, 'statistics.traffic.tx.bytes', 'statistics.traffic')
+          save(n, stream, labels, 'statistics.traffic.tx.bytes', 'statistics_traffic')
 
           labels['mtype'] = 'mgmt'
           labels['type'] = 'rx'
-          save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics.traffic')
+          save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics_traffic')
           labels['type'] = 'tx'
-          save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics.traffic')
+          save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics_traffic')
 
           delete labels['type']
           labels['mtype'] = 'forward'
-          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics.traffic')
+          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics_traffic')
           delete labels['mtype']
 
           if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
             save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
         }
+
+        counter_clients += get(n, 'statistics.clients.total')
         counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
-        counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
         counter_traffic_tx += get(n, 'statistics.traffic.tx.bytes')
+        counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
         counter_traffic_mgmt_tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
         counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
-        counter_clients += get(n, 'statistics.clients.total')
       }
 
       if (_.has(n, 'neighbours.batadv') && isOnline(n))
@@ -147,11 +148,25 @@ module.exports = function(receiver, config) {
         stream.write('meshnodes_total ' + counter_meshnodes_total + '\n')
         stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
         stream.write('total_clients ' + counter_clients + '\n')
-        stream.write('total_traffic_rx ' + counter_traffic_rx + '\n')
-        stream.write('total_traffic_mgmt_rx ' + counter_traffic_mgmt_rx + '\n')
-        stream.write('total_traffic_tx ' + counter_traffic_tx + '\n')
-        stream.write('total_traffic_mgmt_tx ' + counter_traffic_mgmt_tx + '\n')
-        stream.write('total_traffic_forward ' + counter_traffic_forward + '\n')
+
+        var labels = {}
+
+        labels['mtype'] = 'user'
+        labels['type'] = 'rx'
+        save(null, stream, labels, null, 'total_traffic', counter_traffic_rx)
+        labels['type'] = 'tx'
+        save(null, stream, labels, null, 'total_traffic', counter_traffic_tx)
+
+        labels['mtype'] = 'mgmt'
+        labels['type'] = 'rx'
+        save(null, stream, labels, null, 'total_traffic', counter_traffic_mgmt_rx)
+        labels['type'] = 'tx'
+        save(null, stream, labels, null, 'total_traffic', counter_traffic_mgmt_tx)
+
+        delete labels['type']
+        labels['mtype'] = 'forward'
+        save(null, stream, labels, null, 'total_traffic', counter_traffic_forward)
+
         stream.end()
       })
     })

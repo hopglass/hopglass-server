@@ -53,10 +53,10 @@ module.exports = function (configData) {
   require('fs').readdirSync(__dirname + '/receiver').forEach(function(e) {
     var re = /\.js$/
     if (re.test(e))
-      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config, receiver_Callback)
+      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config, receiverCallback)
   })
 
-  function receiver_Callback(id, obj) {
+  function receiverCallback(id, obj) {
     if (!raw[id]) {
       raw[id] = {}
       raw[id].firstseen = new Date().toISOString()

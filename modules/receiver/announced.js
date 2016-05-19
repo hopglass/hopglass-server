@@ -35,7 +35,7 @@ var config = {
   }
 }
 
-module.exports = function(configData, receiver_Callback) {
+module.exports = function(configData, receiverCallback) {
   _.merge(config, configData)
 
 
@@ -66,7 +66,7 @@ module.exports = function(configData, receiver_Callback) {
           id = obj.neighbours.node_id
         } else return
 
-        receiver_Callback(id, obj)
+        receiverCallback(id, obj)
       }
     })
   })
