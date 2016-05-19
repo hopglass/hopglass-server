@@ -32,9 +32,23 @@ module.exports = function(receiver, config) {
   function getMetrics(stream, query) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
     var data = receiver.getData(query)
-    var save = function(n, id, stream, what, where) {
-      if (_.has(n, what))
-        stream.write((where ? where : what.replace(/\./g, '_')) + id + ' ' +  _.get(n, what) + '\n')
+    function save(n, stream, labels, path, name, value) {
+      var newLabels = []
+      Object.keys(labels).map(function(key) {
+        newLabels.push(key + '="' + labels[key] + '"')
+      })
+      labels = '{' + newLabels.join(',') + '}'
+
+      if (!value)
+        value = _.get(n, path)
+
+      if (isNaN(value))
+        value = 0
+
+      if (!name)
+        name = path.replace(/\./g, '_')
+
+      stream.write(name + labels + ' ' + value + '\n')
     }
     function get(n, what) {
       if (_.has(n, what))
@@ -66,17 +80,34 @@ module.exports = function(receiver, config) {
       if (isOnline(n)) {
         counter_meshnodes_online_total++
         if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
-          var id = '{hostname="' + _.get(n, 'nodeinfo.hostname','') + '",nodeid="' + k + '",gateway="' + _.get(n, 'statistics.gateway') + '"}'
-          save(n, id, stream, 'statistics.clients.total')
-          save(n, id, stream, 'statistics.uptime')
-          save(n, id, stream, 'statistics.traffic.rx.bytes')
-          save(n, id, stream, 'statistics.traffic.mgmt_rx.bytes')
-          save(n, id, stream, 'statistics.traffic.tx.bytes')
-          save(n, id, stream, 'statistics.traffic.mgmt_tx.bytes')
-          save(n, id, stream, 'statistics.traffic.forward.bytes')
-          save(n, id, stream, 'statistics.loadavg')
+          var labels = {}
+          labels['hostname'] = _.get(n, 'nodeinfo.hostname')
+          labels['gateway'] = _.get(n, 'statistics.gateway')
+          labels['nodeid'] = k
+
+          save(n, stream, labels, 'statistics.clients.total')
+          save(n, stream, labels, 'statistics.uptime')
+          save(n, stream, labels, 'statistics.loadavg')
+
+          labels['mtype'] = 'user'
+          labels['type'] = 'rx'
+          save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics.traffic')
+          labels['type'] = 'tx'
+          save(n, stream, labels, 'statistics.traffic.tx.bytes', 'statistics.traffic')
+
+          labels['mtype'] = 'mgmt'
+          labels['type'] = 'rx'
+          save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics.traffic')
+          labels['type'] = 'tx'
+          save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics.traffic')
+
+          delete labels['type']
+          labels['mtype'] = 'forward'
+          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics.traffic')
+          delete labels['mtype']
+
           if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
-            stream.write('statistics_memory_usage' + id + ' ' + (n.statistics.memory.total - n.statistics.memory.free)/n.statistics.memory.total + '\n')
+            save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
         }
         counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
         counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
@@ -127,6 +158,7 @@ module.exports = function(receiver, config) {
   }
 
   return {
-    'metrics': getMetrics
+    /* eslint-disable quotes */
+    "metrics": getMetrics
   }
 }
