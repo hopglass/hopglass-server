@@ -140,8 +140,8 @@ module.exports = function(receiver, config) {
 
                 var revLink = linkTable[link.target + '-' + link.source]
                 if (revLink) {
-                  gJson.batadv.links.splice(items.indexOf(revLink), 1)
-                  link.tq += Math.round(val2+(val1-val2)/2)
+                  gJson.batadv.links.splice(gJson.batadv.links.indexOf(revLink), 1)
+                  link.tq += Math.round(link.tq+(revLink.tq-link.tq)/2)
                 }
 
                 if (typeTable[src] === 'l2tp' || typeTable[dest] === 'tunnel')
