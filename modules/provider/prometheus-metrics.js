@@ -56,14 +56,18 @@ module.exports = function(receiver, config) {
       else
         return 0
     }
-    var counter_meshnodes_online_total = 0
-    var counter_meshnodes_total = 0
-    var counter_traffic_rx = 0
-    var counter_traffic_mgmt_rx = 0
-    var counter_traffic_tx = 0
-    var counter_traffic_mgmt_tx = 0
-    var counter_traffic_forward = 0
-    var counter_clients = 0
+    var counter = {}
+    counter.meshnodes = {}
+    counter.meshnodes.online = 0
+    counter.meshnodes.total = 0
+    counter.clients = 0
+    counter.traffic = {}
+    counter.traffic.forward = 0
+    counter.traffic.rx = 0
+    counter.traffic.tx = 0
+    counter.traffic.mgmt = {}
+    counter.traffic.mgmt.rx = 0
+    counter.traffic.mgmt.tx = 0
     var nodeTable = {}
     var typeTable = {}
     async.forEachOf(data, function(n, k, finished1) {
@@ -76,9 +80,9 @@ module.exports = function(receiver, config) {
           }
         }
       }
-      counter_meshnodes_total++
+      counter.meshnodes.total++
       if (isOnline(n)) {
-        counter_meshnodes_online_total++
+        counter.meshnodes.online++
         if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
           var labels = {}
           labels['hostname'] = _.get(n, 'nodeinfo.hostname')
@@ -89,7 +93,12 @@ module.exports = function(receiver, config) {
           save(n, stream, labels, 'statistics.uptime')
           save(n, stream, labels, 'statistics.loadavg')
 
+          if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
+            save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
+
           labels['mtype'] = 'user'
+          labels['type'] = 'forward'
+          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics_traffic')
           labels['type'] = 'rx'
           save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics_traffic')
           labels['type'] = 'tx'
@@ -100,22 +109,14 @@ module.exports = function(receiver, config) {
           save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics_traffic')
           labels['type'] = 'tx'
           save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics_traffic')
-
-          delete labels['type']
-          labels['mtype'] = 'forward'
-          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics_traffic')
-          delete labels['mtype']
-
-          if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
-            save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
         }
 
-        counter_clients += get(n, 'statistics.clients.total')
-        counter_traffic_rx += get(n, 'statistics.traffic.rx.bytes')
-        counter_traffic_tx += get(n, 'statistics.traffic.tx.bytes')
-        counter_traffic_mgmt_rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
-        counter_traffic_mgmt_tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
-        counter_traffic_forward += get(n, 'statistics.traffic.forward.bytes')
+        counter.clients += get(n, 'statistics.clients.total')
+        counter.traffic.forward += get(n, 'statistics.traffic.forward.bytes')
+        counter.traffic.rx += get(n, 'statistics.traffic.rx.bytes')
+        counter.traffic.tx += get(n, 'statistics.traffic.tx.bytes')
+        counter.traffic.mgmt.rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
+        counter.traffic.mgmt.tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
       }
 
       if (_.has(n, 'neighbours.batadv') && isOnline(n))
@@ -145,27 +146,25 @@ module.exports = function(receiver, config) {
         }
         finished2()
       }, function() {
-        stream.write('meshnodes_total ' + counter_meshnodes_total + '\n')
-        stream.write('meshnodes_online_total ' + counter_meshnodes_online_total + '\n')
-        stream.write('total_clients ' + counter_clients + '\n')
+        stream.write('meshnodes_total ' + counter.meshnodes.total + '\n')
+        stream.write('meshnodes_online_total ' + counter.meshnodes.online + '\n')
+        stream.write('total_clients ' + counter.clients + '\n')
 
         var labels = {}
 
         labels['mtype'] = 'user'
+        labels['type'] = 'forward'
+        save(counter, stream, labels, 'traffic.forward', 'total_traffic')
         labels['type'] = 'rx'
-        save(null, stream, labels, null, 'total_traffic', counter_traffic_rx)
+        save(counter, stream, labels, 'traffic.rx', 'total_traffic')
         labels['type'] = 'tx'
-        save(null, stream, labels, null, 'total_traffic', counter_traffic_tx)
+        save(counter, stream, labels, 'traffic.tx', 'total_traffic')
 
         labels['mtype'] = 'mgmt'
         labels['type'] = 'rx'
-        save(null, stream, labels, null, 'total_traffic', counter_traffic_mgmt_rx)
+        save(counter, stream, labels, 'traffic.mgmt.rx', 'total_traffic')
         labels['type'] = 'tx'
-        save(null, stream, labels, null, 'total_traffic', counter_traffic_mgmt_tx)
-
-        delete labels['type']
-        labels['mtype'] = 'forward'
-        save(null, stream, labels, null, 'total_traffic', counter_traffic_forward)
+        save(counter, stream, labels, 'traffic.mgmt.tx', 'total_traffic')
 
         stream.end()
       })
