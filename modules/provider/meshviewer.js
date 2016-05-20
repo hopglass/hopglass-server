@@ -30,17 +30,20 @@ module.exports = function(receiver, config) {
   }
 
   function parsePeerGroup(pg) {
+    var res = []
     for (let i in pg) {
       if (i == 'peers') {
         for (let j in pg[i]) {
           if (pg[i][j])
-            return true
+            res.push(j)
         }
       } else {
-        if (parsePeerGroup(pg[i]))
-          return true
+        var subRes = parsePeerGroup(pg[i])
+        if (subRes)
+          res = [].concat(res).concat(subRes)
       }
     }
+    return res
   }
 
   function getNodesJson(stream, query) {
@@ -56,9 +59,12 @@ module.exports = function(receiver, config) {
         node.flags = {}
         node.flags.gateway = _.get(n, 'flags.gateway')
         node.flags.online = isOnline(n)
-        node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+        var vpn_peers = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+        node.flags.uplink = vpn_peers.length > 0
         node.statistics = {}
         if (node.flags.online) {
+          if (vpn_peers.length > 0)
+            node.statistics.vpn_peers = vpn_peers
           node.statistics.uptime = _.get(n, 'statistics.uptime')
           node.statistics.gateway = _.get(n, 'statistics.gateway')
           if (_.has(n, 'statistics.memory'))
