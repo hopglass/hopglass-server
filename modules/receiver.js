@@ -67,15 +67,27 @@ module.exports = function (configData) {
 
   function receiverCallback(id, obj, receiverId) {
     var receiverConf = config.receivers[receiverId]
-    if (receiverConf.overlay)
+    if (receiverConf.overlay) {
       _.merge(overlay[id], obj)
-    else
+      return
+    } else
       _.merge(raw[id], obj)
 
-    if (!raw[id].firstseen)
+    if (!raw[id]) {
+      raw[id] = {}
       raw[id].firstseen = new Date().toISOString()
+    }
 
     raw[id].lastseen = new Date().toISOString()
+
+    if (!raw[id].lastupdate)
+      raw[id].lastupdate = {}
+    if (obj.nodeinfo)
+      raw[id].lastupdate.nodeinfo = new Date().toISOString()
+    if (obj.statistics)
+      raw[id].lastupdate.statistics = new Date().toISOString()
+    if (obj.neighbours)
+      raw[id].lastupdate.neighbours = new Date().toISOString()
   }
 
   function getRaw() {

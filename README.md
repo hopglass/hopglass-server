@@ -5,7 +5,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 ##How to use
 
-**Debian-based systems using systemd (preferred)**
+**ArchLinux or Debian-based systems using systemd (preferred)**
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 

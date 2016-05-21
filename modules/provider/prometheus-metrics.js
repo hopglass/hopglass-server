@@ -21,11 +21,23 @@ var _ = require('lodash')
 
 module.exports = function(receiver, config) {
 
-  function isOnline(node, time) {
-    if (node)
-      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < time * 1000
+  function isOnline(node, pkg, offlineTime) {
+    var lastseen
+    if (pkg && _.has(node, 'lastupdate.' + pkg))
+      lastseen = _.get(node, 'lastupdate.' + pkg)
     else
-      return true
+      lastseen = node.lastseen
+
+    if (!offlineTime)
+      if (pkg)
+        offlineTime = config.metricsOfflineTime
+      else
+        offlineTime = config.offlineTime
+
+    if (node)
+      return Math.abs((lastseen ? new Date(lastseen) : new Date()) - new Date()) < offlineTime * 1000
+    else
+      return false
   }
 
   //Prometheus metrics
@@ -82,7 +94,7 @@ module.exports = function(receiver, config) {
       }
       counter.meshnodes.total++
 
-      if (isOnline(n, config.offlineTime))
+      if (isOnline(n))
         counter.meshnodes.online++
 
       var labels = {}
@@ -91,17 +103,17 @@ module.exports = function(receiver, config) {
       if (_.has(n, 'nodeinfo.hostname'))
         labels['hostname'] = _.get(n, 'nodeinfo.hostname')
 
-      if (isOnline(n, config.metricsOfflineTime) && _.has(n, 'statistics.gateway'))
+      if (isOnline(n, 'statistics') && _.has(n, 'statistics.gateway'))
         labels['gateway'] = _.get(n, 'statistics.gateway')
 
       if (_.has(n, 'nodeinfo.software.firmware.release'))
         labels['firmware'] = _.get(n, 'nodeinfo.software.firmware.release')
 
-      save(n, stream, labels, null, 'online', isOnline(n, config.offlineTime) ? 1 : 0)
+      save(n, stream, labels, null, 'online', isOnline(n) ? 1 : 0)
 
       delete labels['firmware']
 
-      if (isOnline(n, config.metricsOfflineTime)) {
+      if (isOnline(n, 'statistics')) {
         save(n, stream, labels, 'statistics.clients.total')
         save(n, stream, labels, 'statistics.uptime')
         save(n, stream, labels, 'statistics.loadavg')
@@ -131,14 +143,14 @@ module.exports = function(receiver, config) {
       counter.traffic.mgmt.rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
       counter.traffic.mgmt.tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
 
-      if (_.has(n, 'neighbours.batadv') && isOnline(n, config.metricsOfflineTime))
+      if (_.has(n, 'neighbours.batadv') && isOnline(n, 'neighbours'))
         for (let mac in n.neighbours.batadv)
           nodeTable[mac] = k
 
       finished1()
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
-        if (_.has(n, 'neighbours.batadv') && isOnline(n, config.metricsOfflineTime)) {
+        if (_.has(n, 'neighbours.batadv') && isOnline(n, 'neighbours')) {
           for (let dest in n.neighbours.batadv) {
             if (_.has(n.neighbours.batadv[dest], 'neighbours'))
               for (let src in n.neighbours.batadv[dest].neighbours) {
