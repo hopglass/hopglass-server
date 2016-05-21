@@ -21,9 +21,9 @@ var _ = require('lodash')
 
 module.exports = function(receiver, config) {
 
-  function isOnline(node) {
+  function isOnline(node, time) {
     if (node)
-      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.offlineTime * 1000
+      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < time * 1000
     else
       return true
   }
@@ -81,52 +81,64 @@ module.exports = function(receiver, config) {
         }
       }
       counter.meshnodes.total++
-      if (isOnline(n)) {
+
+      if (isOnline(n, config.offlineTime))
         counter.meshnodes.online++
-        if (_.has(n, 'nodeinfo.hostname') && _.has(n, 'statistics.gateway') && isOnline(n)) {
-          var labels = {}
-          labels['hostname'] = _.get(n, 'nodeinfo.hostname')
-          labels['gateway'] = _.get(n, 'statistics.gateway')
-          labels['nodeid'] = k
 
-          save(n, stream, labels, 'statistics.clients.total')
-          save(n, stream, labels, 'statistics.uptime')
-          save(n, stream, labels, 'statistics.loadavg')
+      var labels = {}
+      labels['nodeid'] = k
 
-          if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
-            save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
+      if (_.has(n, 'nodeinfo.hostname'))
+        labels['hostname'] = _.get(n, 'nodeinfo.hostname')
 
-          labels['mtype'] = 'user'
-          labels['type'] = 'forward'
-          save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics_traffic')
-          labels['type'] = 'rx'
-          save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics_traffic')
-          labels['type'] = 'tx'
-          save(n, stream, labels, 'statistics.traffic.tx.bytes', 'statistics_traffic')
+      if (isOnline(n, config.metricsOfflineTime) && _.has(n, 'statistics.gateway'))
+        labels['gateway'] = _.get(n, 'statistics.gateway')
 
-          labels['mtype'] = 'mgmt'
-          labels['type'] = 'rx'
-          save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics_traffic')
-          labels['type'] = 'tx'
-          save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics_traffic')
-        }
+      if (_.has(n, 'nodeinfo.software.firmware.release'))
+        labels['firmware'] = _.get(n, 'nodeinfo.software.firmware.release')
 
-        counter.clients += get(n, 'statistics.clients.total')
-        counter.traffic.forward += get(n, 'statistics.traffic.forward.bytes')
-        counter.traffic.rx += get(n, 'statistics.traffic.rx.bytes')
-        counter.traffic.tx += get(n, 'statistics.traffic.tx.bytes')
-        counter.traffic.mgmt.rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
-        counter.traffic.mgmt.tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
+      save(n, stream, labels, null, 'online', isOnline(n, config.offlineTime) ? 1 : 0)
+
+      delete labels['firmware']
+
+      if (isOnline(n, config.metricsOfflineTime)) {
+        save(n, stream, labels, 'statistics.clients.total')
+        save(n, stream, labels, 'statistics.uptime')
+        save(n, stream, labels, 'statistics.loadavg')
+
+        if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
+          save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
+
+        labels['mtype'] = 'user'
+        labels['type'] = 'forward'
+        save(n, stream, labels, 'statistics.traffic.forward.bytes', 'statistics_traffic')
+        labels['type'] = 'rx'
+        save(n, stream, labels, 'statistics.traffic.rx.bytes', 'statistics_traffic')
+        labels['type'] = 'tx'
+        save(n, stream, labels, 'statistics.traffic.tx.bytes', 'statistics_traffic')
+
+        labels['mtype'] = 'mgmt'
+        labels['type'] = 'rx'
+        save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics_traffic')
+        labels['type'] = 'tx'
+        save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics_traffic')
       }
 
-      if (_.has(n, 'neighbours.batadv') && isOnline(n))
+      counter.clients += get(n, 'statistics.clients.total')
+      counter.traffic.forward += get(n, 'statistics.traffic.forward.bytes')
+      counter.traffic.rx += get(n, 'statistics.traffic.rx.bytes')
+      counter.traffic.tx += get(n, 'statistics.traffic.tx.bytes')
+      counter.traffic.mgmt.rx += get(n, 'statistics.traffic.mgmt_rx.bytes')
+      counter.traffic.mgmt.tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
+
+      if (_.has(n, 'neighbours.batadv') && isOnline(n, config.metricsOfflineTime))
         for (let mac in n.neighbours.batadv)
           nodeTable[mac] = k
 
       finished1()
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
-        if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
+        if (_.has(n, 'neighbours.batadv') && isOnline(n, config.metricsOfflineTime)) {
           for (let dest in n.neighbours.batadv) {
             if (_.has(n.neighbours.batadv[dest], 'neighbours'))
               for (let src in n.neighbours.batadv[dest].neighbours) {

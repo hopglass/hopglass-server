@@ -37,6 +37,7 @@
   },
   "provider": {
     "offlineTime": 900,
+    "metricsOfflineTime": 90,
     "ffapiPath": "./ffapi/"
   },
   "webserver": {

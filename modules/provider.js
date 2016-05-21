@@ -21,6 +21,7 @@ var _ = require('lodash')
 var config = {
   /* eslint-disable quotes */
   "offlineTime": 900,
+  "metricsOfflineTime": 60,
   "ffapiPath": "./ffapi/"
 }
 
