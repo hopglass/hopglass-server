@@ -50,8 +50,6 @@ module.exports = function (configData) {
 
   _.merge(config, configData)
 
-  console.log(config)
-
   var receiverList = []
   var raw = {}
   var overlay = {}
