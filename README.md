@@ -56,6 +56,8 @@ Possible webserver queries
 - fully modular conversion system
 - many bugfixes
 - meshviewer provider
+- ffapi provider
+- label-based traffic metrics
 
 **v0.2 (next)**
 
