@@ -28,6 +28,7 @@ Possible webserver queries
 |/metrics               |Prometheus metrics|
 |/wifi-aliases.txt      |Aliases file for Wifi Analyzer app|
 |/WifiAnalyzer_Alias.txt|Aliases file for Wifi Analyzer app|
+|/ffapi.json            |Freifunk API file|
 
 ##Metrics values
 

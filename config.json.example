@@ -36,7 +36,8 @@
     }
   },
   "provider": {
-    "offlineTime": 900
+    "offlineTime": 900,
+    "ffapiPath": "./ffapi/"
   },
   "webserver": {
     "ip": "::",

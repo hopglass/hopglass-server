@@ -20,7 +20,8 @@ var _ = require('lodash')
 
 var config = {
   /* eslint-disable quotes */
-  "offlineTime": 900
+  "offlineTime": 900,
+  "ffapiPath": "./ffapi/"
 }
 
 module.exports = function (receiver, configData) {
