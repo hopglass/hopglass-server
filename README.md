@@ -61,10 +61,15 @@ Possible webserver queries
 
 **v0.2 (next)**
 
-- new HopGlass data format
-- graph caching
 - provide a graph-generation implementation for all providers
-- network provider and receiver
+- graph caching
+- handle gateway flag correctly without aliases
+- alfred receiver
+
+**v0.3**
+
+- new HopGlass data format
+- network-transparent receivers
 
 **v1.0**
 
