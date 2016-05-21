@@ -26,7 +26,7 @@ var config = {
   }
 }
 
-module.exports = function(configData) {
+module.exports = function(configData, sharedConfig, receiverCallback, receiverId) {
   _.merge(config, configData)
 
   var aliases = {}
@@ -37,13 +37,7 @@ module.exports = function(configData) {
     console.warn('alias file "' + config.aliases.file + '" doesn\'t exist, using empty')
   }
 
-  function getRaw() {
-    return aliases
-  }
-
-  var exports = {}
-  exports.getRaw = getRaw
-  exports.overwrite = true
-
-  return exports
+  _.forEach(aliases, function(n, k) {
+    receiverCallback(k, n, receiverId)
+  })
 }

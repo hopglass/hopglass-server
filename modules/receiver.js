@@ -22,6 +22,12 @@ var async = require('async')
 
 var config = {
   /* eslint-disable quotes */
+  receivers: [
+    { module: "announced" },
+    { module: "aliases",
+      overlay: true
+    }
+  ],
   ifaces: [
     "bat0"
   ],
@@ -41,8 +47,9 @@ module.exports = function (configData) {
 
   _.merge(config, configData)
 
-  var receiverList = {}
+  var receiverList = []
   var raw = {}
+  var overlay = {}
 
   try {
     raw = JSON.parse(fs.readFileSync(config.storage.file, 'utf8'))
@@ -50,35 +57,31 @@ module.exports = function (configData) {
     console.log(err)
   }
 
-  require('fs').readdirSync(__dirname + '/receiver').forEach(function(e) {
-    var re = /\.js$/
-    if (re.test(e))
-      receiverList[e.replace(re, '')] = require(__dirname + '/receiver/' + e)(config, receiverCallback)
-  })
+  for (let i in config.receivers) {
+    var r = config.receivers[i]
+    receiverList.push(require(__dirname + '/receiver/' + r.module)(r, config, receiverCallback, i))
+  }
 
-  function receiverCallback(id, obj) {
+  function receiverCallback(id, obj, receiverId) {
     if (!raw[id]) {
-      raw[id] = {}
-      raw[id].firstseen = new Date().toISOString()
+      obj.firstseen = new Date().toISOString()
     }
-    raw[id].lastseen = new Date().toISOString()
+    obj.lastseen = new Date().toISOString()
 
-    _.forEach(obj, function(n, k) {
-      raw[id][k] = n
-    })
+    var receiverConf = config.receivers[receiverId]
+    if (receiverConf.overlay)
+      _.merge(overlay[id], obj)
+    else
+      _.merge(raw[id], obj)
   }
 
   function getRaw() {
-    return raw
+    return _.merge({}, raw)
   }
 
   function getData(query) {
     var data = getRaw()
-    _.forEach(receiverList, function(e) {
-      if (e.overwrite) {
-        data = _.merge(data, e.getRaw())
-      }
-    })
+    _.merge(data, overlay)
 
     if (typeof query === 'object')
       data = filterData(data, query)

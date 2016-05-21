@@ -1,20 +1,28 @@
 {
   "core": { },
   "receiver": {
-    "announced": {
-      "target": {
-        "ip": "ff02::1",
-        "port": 1001
+    "receivers": [
+      { "module": "announced",
+        "config": {
+          "target": {
+            "ip": "ff02::1",
+            "port": 1001
+          },
+          "port": 45123,
+          "interval": {
+            "statistics": 60,
+            "nodeinfo": 500
+          }
+        },
+        "overlay": false
       },
-      "port": 45123,
-      "interval": {
-        "statistics": 60,
-        "nodeinfo": 500
+      { "module": "aliases",
+        "config": {
+          "file": "./aliases.json"
+        },
+        "overlay": true
       }
-    },
-    "aliases": {
-      "file": "./aliases.json"
-    },
+    ],
     "ifaces": [
       "bat0"
     ],

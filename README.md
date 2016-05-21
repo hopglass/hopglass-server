@@ -9,7 +9,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-1. Run `# curl -sL https://raw.githubusercontent.com/plumpudding/hopglass-server/modules/scripts/bootstrap.sh | bash -`
+1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
 2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
@@ -46,6 +46,29 @@ Possible webserver queries
 - total_clients
 - total_traffic
 
+##Development timeline
+
+**oldmaster (maintenance)**
+
+**v0.1 (current)**
+
+- fully modular conversion system
+- many bugfixes
+- meshviewer provider
+
+**v0.2 (next)**
+
+- new HopGlass data format
+- graph caching
+- provide a graph-generation implementation for all providers
+- network provider and receiver
+
+**v1.0**
+
+- definition of the Prometheus metrics format
+- definition of the transitional data format
+- definition of the configuration format
+
 ##Installation without systemd
 
 **Debian-based systems without systemd**
@@ -54,7 +77,7 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
 
 ***Warning: untested, unsupported, not recommended***
 
-1. Run `# curl -sL https://raw.githubusercontent.com/plumpudding/hopglass-server/modules/scripts/bootstrap.sh | bash -`
+1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
 2. Create a start script in `/usr/local/bin/` similar to this:
    `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/$1/config.json"`
 3. Create an init-script in `/etc/init.d/`.
@@ -64,4 +87,4 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
 You might want to
 - Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
 - Install [HopGlass](https://github.com/plumpudding/hopglass)
-- Install [Promotheus](http://prometheus.io/) and [Grafana](http://grafana.org/)
+- Install [Prometheus](http://prometheus.io/) and [Grafana](http://grafana.org/)

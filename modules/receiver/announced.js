@@ -22,22 +22,19 @@ var _ = require('lodash')
 
 var config = {
   /* eslint-disable quotes */
-  "announced": {
-    "target": {
-      "ip": "ff02::1",
-      "port": 1001
-    },
-    "port": 45123,
-    "interval": {
-      "statistics": 60,
-      "nodeinfo": 500
-    }
+  "target": {
+    "ip": "ff02::1",
+    "port": 1001
+  },
+  "port": 45123,
+  "interval": {
+    "statistics": 60,
+    "nodeinfo": 500
   }
 }
 
-module.exports = function(configData, receiverCallback) {
+module.exports = function(configData, sharedConfig, receiverCallback, receiverId) {
   _.merge(config, configData)
-
 
   var collector = dgram.createSocket('udp6')
 
@@ -48,7 +45,7 @@ module.exports = function(configData, receiverCallback) {
 
   collector.on('listening', function() {
     collector.setTTL(1) // restrict hop-limit to own subnet / should prevent loops (default was: 64)
-    console.log('collector listening on port ' + config.announced.port)
+    console.log('collector listening on port ' + config.port)
   })
 
   collector.on('message', function(msg) {
@@ -66,22 +63,22 @@ module.exports = function(configData, receiverCallback) {
           id = obj.neighbours.node_id
         } else return
 
-        receiverCallback(id, obj)
+        receiverCallback(id, obj, receiverId)
       }
     })
   })
 
   function retrieve(stat, address) {
-    var ip = address ? address : config.announced.target.ip
+    var ip = address ? address : config.target.ip
     var req = new Buffer('GET ' + stat)
-    config.ifaces.forEach(function(iface) {
-      collector.send(req, 0, req.length, config.announced.target.port, ip + '%' + iface, function (err) {
+    sharedConfig.ifaces.forEach(function(iface) {
+      collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
         if (err) console.error(err)
       })
     })
   }
 
-  collector.bind(config.announced.port)
+  collector.bind(config.port)
 
   retrieve('nodeinfo')
   retrieve('neighbours')
@@ -89,14 +86,10 @@ module.exports = function(configData, receiverCallback) {
 
   setInterval(function() {
     retrieve('nodeinfo')
-  }, config.announced.interval.nodeinfo * 1000)
+  }, config.interval.nodeinfo * 1000)
 
   setInterval(function() {
     retrieve('neighbours')
     retrieve('statistics')
-  }, config.announced.interval.statistics * 1000)
-
-  var exports = {}
-
-  return exports
+  }, config.interval.statistics * 1000)
 }
