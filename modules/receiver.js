@@ -42,10 +42,15 @@ var config = {
 }
 
 module.exports = function (configData) {
-  if (configData.ifaces && configData.ifaces.length > 0)
+  if (configData.ifaces)
     delete config.ifaces
 
+  if (configData.receivers)
+    delete config.receivers
+
   _.merge(config, configData)
+
+  console.log(config)
 
   var receiverList = []
   var raw = {}
@@ -59,20 +64,20 @@ module.exports = function (configData) {
 
   for (let i in config.receivers) {
     var r = config.receivers[i]
-    receiverList.push(require(__dirname + '/receiver/' + r.module)(r, config, receiverCallback, i))
+    receiverList.push(require(__dirname + '/receiver/' + r.module)(r.config, config, receiverCallback, i))
   }
 
   function receiverCallback(id, obj, receiverId) {
-    if (!raw[id]) {
-      obj.firstseen = new Date().toISOString()
-    }
-    obj.lastseen = new Date().toISOString()
-
     var receiverConf = config.receivers[receiverId]
     if (receiverConf.overlay)
       _.merge(overlay[id], obj)
     else
       _.merge(raw[id], obj)
+
+    if (!raw[id].firstseen)
+      raw[id].firstseen = new Date().toISOString()
+
+    raw[id].lastseen = new Date().toISOString()
   }
 
   function getRaw() {
