@@ -24,8 +24,8 @@ module.exports = function(receiver, config) {
     var data = receiver.getData(query)
 
     var site = 'all'
-    if (query.site)
-      site = query.site
+    if (query.filter == 'site' && query.value)
+      site = query.value
 
     try {
       var obj = JSON.parse(fs.readFileSync(config.ffapiPath + site + '.json', 'UTF-8'))
