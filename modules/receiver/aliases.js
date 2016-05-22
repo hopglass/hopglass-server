@@ -26,7 +26,9 @@ var config = {
   }
 }
 
-module.exports = function(configData, sharedConfig, receiverCallback, receiverId) {
+delete require.cache[__filename];
+
+module.exports = function(receiverId, configData, api) {
   _.merge(config, configData)
 
   var aliases = {}
@@ -38,6 +40,6 @@ module.exports = function(configData, sharedConfig, receiverCallback, receiverId
   }
 
   _.forEach(aliases, function(n, k) {
-    receiverCallback(k, n, receiverId)
+    api.receiverCallback(k, n, receiverId)
   })
 }

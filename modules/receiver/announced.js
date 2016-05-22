@@ -33,7 +33,9 @@ var config = {
   }
 }
 
-module.exports = function(configData, sharedConfig, receiverCallback, receiverId) {
+delete require.cache[__filename];
+
+module.exports = function(receiverId, configData, api) {
   _.merge(config, configData)
 
   var collector = dgram.createSocket('udp6')
@@ -63,7 +65,7 @@ module.exports = function(configData, sharedConfig, receiverCallback, receiverId
           id = obj.neighbours.node_id
         } else return
 
-        receiverCallback(id, obj, receiverId)
+        api.receiverCallback(id, obj, receiverId)
       }
     })
   })
@@ -71,7 +73,7 @@ module.exports = function(configData, sharedConfig, receiverCallback, receiverId
   function retrieve(stat, address) {
     var ip = address ? address : config.target.ip
     var req = new Buffer('GET ' + stat)
-    sharedConfig.ifaces.forEach(function(iface) {
+    api.sharedConfig.ifaces.forEach(function(iface) {
       collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
         if (err) console.error(err)
       })

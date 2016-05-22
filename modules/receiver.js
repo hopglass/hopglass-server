@@ -60,9 +60,13 @@ module.exports = function (configData) {
     console.log(err)
   }
 
+  var api = {}
+  api.receiverCallback  = receiverCallback
+  api.sharedConfig = config
+  api.getRaw = getRaw
   for (let i in config.receivers) {
     var r = config.receivers[i]
-    receiverList.push(require(__dirname + '/receiver/' + r.module)(r.config, config, receiverCallback, i))
+    receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
   }
 
   function receiverCallback(id, obj, receiverId) {
@@ -202,6 +206,5 @@ module.exports = function (configData) {
   var exports = {}
   exports.getData = getData
   exports.getRaw  = getRaw
-
   return exports
 }
