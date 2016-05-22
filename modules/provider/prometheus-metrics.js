@@ -106,6 +106,9 @@ module.exports = function(receiver, config) {
       if (isOnline(n, 'statistics') && _.has(n, 'statistics.gateway'))
         labels['gateway'] = _.get(n, 'statistics.gateway')
 
+      if (_.has(n, 'nodeinfo.system.site_code'))
+        labels['site'] = _.get(n, 'nodeinfo.system.site_code')
+
       if (_.has(n, 'nodeinfo.software.firmware.release'))
         labels['firmware'] = _.get(n, 'nodeinfo.software.firmware.release')
 
