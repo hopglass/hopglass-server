@@ -78,6 +78,9 @@ module.exports = function (configData) {
     }
 
     if (receiverConf.overlay) {
+      if (!overlay[id])
+        overlay[id] = {}
+
       _.merge(overlay[id], obj)
       delete raw[id].lastseen
       delete raw[id].lastupdate
