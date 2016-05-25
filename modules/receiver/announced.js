@@ -33,7 +33,7 @@ var config = {
   }
 }
 
-delete require.cache[__filename];
+delete require.cache[__filename]
 
 module.exports = function(receiverId, configData, api) {
   _.merge(config, configData)
