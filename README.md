@@ -22,7 +22,7 @@ Possible webserver queries
 |/nodes.json            |HopGlass nodes.json v2|
 |/graph.json            |HopGlass graph.json v1|
 |/mv/nodes.json         |Meshviewer nodes.json v2|
-|/mv/nodes.json         |Meshviewer graph.json v1|
+|/mv/graph.json         |Meshviewer graph.json v1|
 |/raw.json              |Raw data collected, same as the `raw.json` save file|
 |/hosts                 |hosts file to be placed in /etc/hosts|
 |/metrics               |Prometheus metrics|
