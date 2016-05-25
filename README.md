@@ -9,7 +9,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
+1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
 2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
@@ -51,7 +51,7 @@ Possible webserver queries
 
 **oldmaster (maintenance)**
 
-**v0.1 (current)**
+**v0.1.1 (current)**
 
 - fully modular conversion system
 - many bugfixes
@@ -85,7 +85,7 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
 
 ***Warning: untested, unsupported, not recommended***
 
-1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
+1. Run `# wget https://raw.githubusercontent.com/plumpudding/hopglass-server/v0.1.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
 2. Create a start script in `/usr/local/bin/` similar to this:
    `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/$1/config.json"`
 3. Create an init-script in `/etc/init.d/`.
