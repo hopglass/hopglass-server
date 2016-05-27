@@ -120,6 +120,7 @@ module.exports = function(receiver, config) {
         save(n, stream, labels, 'statistics.clients.total')
         save(n, stream, labels, 'statistics.uptime')
         save(n, stream, labels, 'statistics.loadavg')
+        save(n, stream, labels, 'statistics.rootfs_usage')
 
         if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
           save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
