@@ -82,7 +82,6 @@ module.exports = function (configData) {
         overlay[id] = {}
 
       _.merge(overlay[id], obj)
-      delete raw[id].lastseen
       delete raw[id].lastupdate
       return
     }
