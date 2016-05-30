@@ -60,7 +60,7 @@ module.exports = function(receiver, configData) {
       }
     }
 
-    stream.write('$ORIGIN' + " " + config.origin + '.\n')
+    stream.write('$ORIGIN' + " " + config.origin + '\n')
     stream.write('$TTL ' + config.min_ttl + '\n\n')
     stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
     stream.write(' ' + Date.now() + '       ; serial number\n')
