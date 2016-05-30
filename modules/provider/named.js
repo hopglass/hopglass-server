@@ -45,11 +45,22 @@ module.exports = function(receiver, sharedConfig) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
     var data = receiver.getData(query)
 
-    String.prototype.padRight = function(l,c) {
-      if (this.length > l) {
-        return this
+    function namedString(s) {
+      //limit length
+      var r = s.substring(0,50)
+      //remove leading and trailing minus
+      r = r.replace(/^-+/,'').replace(/-+$/,'')
+      //remove non alphanumerics and make lc
+      r = r.replace(/-+/g,'_').replace(/_+/g,'_')
+      r = r.replace(/\W/g, '').toLowerCase()
+      //no underscores and no repeating minuses
+      r = r.replace(/_+/g,'-').replace(/-+/g,'-')
+      // padding
+      var l = config.namePadding
+      if (r.length > l) {
+        return r
       } else {
-        return this+Array(l-this.length+1).join(c||" ")
+        return r+Array(l-r.length+1).join(" "||" ")
       }
     }
 
@@ -79,18 +90,19 @@ module.exports = function(receiver, sharedConfig) {
           }
         }
         if (address) {
-          var padding = config.namePadding
           var nodeid  = _.get(n, 'nodeinfo.node_id')
-          stream.write(nodeid.padRight(padding," ") + ' IN AAAA ' + address + '\n')
+          stream.write(namedString(nodeid) + ' IN AAAA ' + address + '\n')
           if (config.mapTemplate) {
             var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
-            stream.write(nodeid.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+            stream.write(namedString(nodeid) + ' IN TXT  "' + mapurl + '"\n')
           }
           if (_.has(n, 'nodeinfo.hostname')) {
             var hostname = _.get(n, 'nodeinfo.hostname')
-            stream.write(hostname.padRight(padding," ") + ' IN AAAA ' + address + '\n') 
-            if (config.mapTemplate) {
-              stream.write(hostname.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+            if (hostname !== nodeid) {
+              stream.write(namedString(hostname) + ' IN AAAA ' + address + '\n') 
+              if (config.mapTemplate) {
+                stream.write(namedString(hostname) + ' IN TXT  "' + mapurl + '"\n')
+              }
             }
           }
           stream.write('\n')
