@@ -1,20 +1,13 @@
 {
-  "core": { },
   "receiver": {
     "receivers": [
       { "module": "announced",
         "config": {
-          "target": {
-            "ip": "ff02::1",
-            "port": 1001
-          },
-          "port": 45123,
           "interval": {
             "statistics": 60,
             "nodeinfo": 500
           }
-        },
-        "overlay": false
+        }
       },
       { "module": "aliases",
         "config": {
@@ -27,38 +20,16 @@
       "bat0"
     ],
     "storage": {
-      "interval": 300,
       "file": "./raw.json"
     },
     "purge": {
       "maxAge": 14,
-      "interval": 86400
     }
   },
   "provider": {
-    "offlineTime": 900,
-    "metricsOfflineTime": 60,
-    "ffapiPath": "./ffapi/",
-    "named": {
-      "mapTemplate": "https://map.community.freifunk.net/#!v:g;n:{nodeId}",
-      "origin": "nodes.community.freifunk.net.",
-      "defaultTtl": 86400,
-      "ns": "ns1.community.freifunk.net.",
-      "postmaster": "admin+community.freifunk.net.",
-      "refresh": 28800,
-      "retry": 7200,
-      "expire": 864000,
-      "minTtl": 86400,
-      "nameservers":  [
-        "ns1.community.freifunk.net.",
-        "ns2.community.freifunk.net."
-      ],
-      "subdomainNet": "0:0:0:0::/64",
-      "namePadding" : 40
-    }
+    "offlineTime": 900
   },
   "webserver": {
-    "ip": "::",
     "port": 4000
   }
 }
