@@ -21,21 +21,20 @@ var _ = require('lodash')
 
 var config = {
   /* eslint-disable quotes */
-  "map_template": "https://map.community.freifunk.net/#!v:g;n:{node_id}",
-  "origin":       "nodes.community.freifunk.net.",
-  "default_ttl":  86400,
-  "ns":           "ns1.community.freifunk.net.",
-  "postmaster":   "admin+community.freifunk.net.",
-  "refresh":      28800,
-  "retry":        7200,
-  "expire":       864000,
-  "min_ttl":      86400,
-  "nameservers":  [
+  "origin": "nodes.community.freifunk.net.",
+  "defaultTtl": 86400,
+  "ns": "ns1.community.freifunk.net.",
+  "postmaster": "admin+community.freifunk.net.",
+  "refresh": 28800,
+  "retry": 7200,
+  "expire": 864000,
+  "minTtl": 86400,
+  "nameservers": [
     "ns1.community.freifunk.net.",
     "ns2.community.freifunk.net."
   ],
-  "subdomain_net": "fddd:5d16:b5dd:0::/64",
-  "name_padding" : 40
+  "subdomainNet": "0:0:0:0::/64",
+  "namePadding" : 40
 }
 
 module.exports = function(receiver, sharedConfig) {
@@ -55,20 +54,20 @@ module.exports = function(receiver, sharedConfig) {
     }
 
     stream.write('$ORIGIN' + " " + config.origin + '\n')
-    stream.write('$TTL ' + config.min_ttl + '\n\n')
+    stream.write('$TTL ' + config.minTtl + '\n\n')
     stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
     stream.write(' ' + Date.now() + '       ; serial number\n')
     stream.write(' ' + config.refresh + ' ; Refresh\n')
     stream.write(' ' + config.retry + '   ; Retry\n')
     stream.write(' ' + config.expire + '  ; Expire\n')
-    stream.write(' ' + config.min_ttl + ' ; Min TTL\n')
+    stream.write(' ' + config.minTtl + ' ; Min TTL\n')
     stream.write(')\n')
     for (var ns in config.nameservers) { 
       stream.write('@ IN NS ' + config.nameservers[ns] + '\n')
     }
     stream.write('\n')
 
-    var subdomain = config.subdomain_net.split(":").slice(0,2).join(":")
+    var subdomain = config.subdomainNet.split(":").slice(0,2).join(":")
     
     async.forEachOf(data, function(n, k, finished) {
       if (_.has(n, 'nodeinfo.network.addresses')) {
@@ -80,15 +79,19 @@ module.exports = function(receiver, sharedConfig) {
           }
         }
         if (address) {
-          var padding = config.name_padding
+          var padding = config.namePadding
           var nodeid  = _.get(n, 'nodeinfo.node_id')
           stream.write(nodeid.padRight(padding," ") + ' IN AAAA ' + address + '\n')
-          var mapurl = config.map_template.replace("{node_id}",nodeid)
-          stream.write(nodeid.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+          if (config.mapTemplate) {
+            var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
+            stream.write(nodeid.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+          }
           if (_.has(n, 'nodeinfo.hostname')) {
             var hostname = _.get(n, 'nodeinfo.hostname')
             stream.write(hostname.padRight(padding," ") + ' IN AAAA ' + address + '\n') 
-            stream.write(hostname.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+            if (config.mapTemplate) {
+              stream.write(hostname.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+            }
           }
           stream.write('\n')
         }
@@ -97,6 +100,7 @@ module.exports = function(receiver, sharedConfig) {
     }, function() {
       stream.end()
     })
+    stream.end()
   }
 
   return {
