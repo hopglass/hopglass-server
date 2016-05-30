@@ -74,7 +74,8 @@ module.exports = function(receiver, configData) {
     }
     stream.write('\n')
 
-    var subdomain = config.subdomain_net.split("/")[0]
+    var subdomain = config.subdomain_net.split(":").slice(0,2).join(":")
+    
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'nodeinfo.network.addresses')) {
         var addrobj = _.get(n, 'nodeinfo.network.addresses')
