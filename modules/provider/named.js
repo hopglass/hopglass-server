@@ -45,21 +45,51 @@ module.exports = function(receiver, sharedConfig) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
     var data = receiver.getData(query)
 
-    String.prototype.padRight = function(l,c) {
-      if (this.length > l) {
-        return this
+    function namedString(s) {
+      //limit length
+      var r = s.substring(0,50)
+      //remove leading and trailing minus
+      r = r.replace(/^-+/,'').replace(/-+$/,'')
+      //remove non alphanumerics and make lc
+      r = r.replace(/-+/g,'_').replace(/_+/g,'_')
+      r = r.replace(/\W/g, '').toLowerCase()
+      //no underscores and no dots
+      r = r.replace(/_+/g,'-').replace(/\.+/g,'-')
+      // padding
+      var l = config.namePadding
+      if (r.length > l) {
+        return r
       } else {
-        return this+Array(l-this.length+1).join(c||" ")
+        return r+Array(l-r.length+1).join(" "||" ")
+      }
+    }
+
+    function save(name) {
+      if (_.has(n, 'nodeinfo.network.addresses')) {
+        var addrobj = _.get(n, 'nodeinfo.network.addresses')
+        var address = undefined
+        for (var a in addrobj) {
+          for (var subdomain in subdomainNets) {
+            if (addrobj[a].indexOf(subdomain) === 0) {
+              address = addrobj[a]
+              stream.write(namedString(name) + ' IN AAAA ' + address + '\n')
+            }
+          }
+        }
+      }    
+      if (config.mapTemplate) {
+        var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
+        stream.write(namedString(nodeid) + ' IN TXT  "' + mapurl + '"\n')
       }
     }
 
     stream.write('$ORIGIN' + " " + config.origin + '\n')
     stream.write('$TTL ' + config.minTtl + '\n\n')
     stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
-    stream.write(' ' + Date.now() + '       ; serial number\n')
+    stream.write(' ' + Date.now() + ' ; serial number\n')
     stream.write(' ' + config.refresh + ' ; Refresh\n')
-    stream.write(' ' + config.retry + '   ; Retry\n')
-    stream.write(' ' + config.expire + '  ; Expire\n')
+    stream.write(' ' + config.retry + ' ; Retry\n')
+    stream.write(' ' + config.expire + ' ; Expire\n')
     stream.write(' ' + config.minTtl + ' ; Min TTL\n')
     stream.write(')\n')
     for (var ns in config.nameservers) { 
@@ -67,35 +97,41 @@ module.exports = function(receiver, sharedConfig) {
     }
     stream.write('\n')
 
-    var subdomain = config.subdomainNet.split(":").slice(0,2).join(":")
+    var subdomainNets = []
+    for (var sd in config.subdomainNet) {
+      var v = config.subdomainNet[sd]
+      subdomainNets.push(v.split(":").slice(0,3).join(":"))
+    }
     
     async.forEachOf(data, function(n, k, finished) {
-      if (_.has(n, 'nodeinfo.network.addresses')) {
-        var addrobj = _.get(n, 'nodeinfo.network.addresses')
-        var address = undefined
-        for (var a in addrobj) {
-          if (addrobj[a].indexOf(subdomain) === 0) {
-            address = addrobj[a]
-          }
-        }
-        if (address) {
-          var padding = config.namePadding
-          var nodeid  = _.get(n, 'nodeinfo.node_id')
-          stream.write(nodeid.padRight(padding," ") + ' IN AAAA ' + address + '\n')
-          if (config.mapTemplate) {
-            var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
-            stream.write(nodeid.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
-          }
-          if (_.has(n, 'nodeinfo.hostname')) {
-            var hostname = _.get(n, 'nodeinfo.hostname')
-            stream.write(hostname.padRight(padding," ") + ' IN AAAA ' + address + '\n') 
-            if (config.mapTemplate) {
-              stream.write(hostname.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+
+      function save(name) {
+        if (_.has(n, 'nodeinfo.network.addresses')) {
+          var addrobj = _.get(n, 'nodeinfo.network.addresses')
+          for (var a in addrobj) {
+            for (var s in subdomainNets) {
+              if (addrobj[a].indexOf(subdomainNets[s]) === 0) {
+                var address = addrobj[a]
+                stream.write(namedString(name) + ' IN AAAA ' + address + '\n')
+              }
             }
           }
-          stream.write('\n')
+        }    
+        if (config.mapTemplate) {
+          var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
+          stream.write(namedString(name) + ' IN TXT  "' + mapurl + '"\n')
         }
       }
+
+      var nodeid  = _.get(n, 'nodeinfo.node_id')
+      save(nodeid)
+      if (_.has(n, 'nodeinfo.hostname')) {
+        var hostname = _.get(n, 'nodeinfo.hostname')
+        if (hostname !== nodeid) {
+          save(hostname)
+        }
+      }
+      stream.write('\n')
       finished()
     }, function() {
       stream.end()
@@ -108,3 +144,4 @@ module.exports = function(receiver, sharedConfig) {
     "nodes.zone": getZone
   }
 }
+
