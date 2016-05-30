@@ -19,8 +19,28 @@
 var async = require('async')
 var _ = require('lodash')
 
-module.exports = function(receiver, config) {
+var config = {
+  /* eslint-disable quotes */
+  "map_template": "https://map.community.freifunk.net/#!v:g;n:{node_id}",
+  "origin":       "nodes.community.freifunk.net.",
+  "default_ttl":  86400,
+  "ns":           "ns1.community.freifunk.net.",
+  "postmaster":   "admin+community.freifunk.net.",
+  "refresh":      28800,
+  "retry":        7200,
+  "expire":       864000,
+  "min_ttl":      86400,
+  "nameservers":  [
+    "ns1.community.freifunk.net.",
+    "ns2.community.freifunk.net."
+  ],
+  "subdomain_net": "fddd:5d16:b5dd:0::/64",
+  "name_padding" : 40
+}
 
+module.exports = function(receiver, configData) {
+  _.merge(config, configData)
+  
   //Named nodes.zone
   function getZone(stream, query) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
@@ -32,39 +52,51 @@ module.exports = function(receiver, config) {
       else
         return 0
     }
-    String.prototype.padRight = function(l,c) {return this+Array(l-this.length+1).join(c||" ")}
+    String.prototype.padRight = function(l,c) {
+      if (this.length > l) {
+        return this
+      } else {
+        return this+Array(l-this.length+1).join(c||" ")
+      }
+    }
 
-    var origin = "nodes.ffm.freifunk.net"
-    var dnssrv = "ns.ffm.freifunk.net"
-    var mailad = "admin@ffm.freifunk.net"
-    var mapurl = "https://hopglass.ffm.freifunk.net/"
-    
-    stream.write('$ORIGIN' + " " + origin + '.\n')
-    stream.write('$TTL 86400' + '\n\n')
-    stream.write('@ IN SOA ' + dnssrv + '. ' + mailad.replace("@", ".") + '. (\n')
-    stream.write('1463764501           ; serial number\n')
-    stream.write('28800                ; Refresh\n')
-    stream.write('7200                 ; Retry\n')
-    stream.write('864000               ; Expire\n')
-    stream.write('86400                ; Min TTL\n')
+    stream.write('$ORIGIN' + " " + config.origin + '.\n')
+    stream.write('$TTL ' + config.min_ttl + '\n\n')
+    stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
+    stream.write(' ' + Date.now() + '       ; serial number\n')
+    stream.write(' ' + config.refresh + ' ; Refresh\n')
+    stream.write(' ' + config.retry + '   ; Retry\n')
+    stream.write(' ' + config.expire + '  ; Expire\n')
+    stream.write(' ' + config.min_ttl + ' ; Min TTL\n')
     stream.write(')\n')
-    stream.write('@ IN NS ' + dnssrv + '.\n\n')
+    for (var ns in config.nameservers) { 
+      stream.write('@ IN NS ' + config.nameservers[ns] + '\n')
+    }
+    stream.write('\n')
 
-    var address  = ""
-    var hostname = ""
-    var nodeid   = ""
+    var subdomain = config.subdomain_net.split("/")[0]
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'nodeinfo.network.addresses')) {
-        address = _.get(n, 'nodeinfo.network.addresses')[1]
-        nodeid  = _.get(n, 'nodeinfo.node_id')
-        stream.write(nodeid.padRight(30," ") + ' IN AAAA ' + address + '\n')
-        stream.write(nodeid.padRight(30," ") + ' IN TXT  "' + mapurl + "/#!v:g;n:" + nodeid + '"\n')
-        if (_.has(n, 'nodeinfo.hostname')) {
-          hostname = _.get(n, 'nodeinfo.hostname')
-          stream.write(hostname.padRight(30," ") + ' IN AAAA ' + address + '\n') 
-          stream.write(hostname.padRight(30," ") + ' IN TXT  "' + mapurl + "/#!v:g;n:" + nodeid + '"\n')
+        var addrobj = _.get(n, 'nodeinfo.network.addresses')
+        var address = undefined
+        for (var a in addrobj) {
+          if (addrobj[a].indexOf(subdomain) === 0) {
+            address = addrobj[a]
+          }
         }
-        stream.write('\n')
+        if (address) {
+          var padding = config.name_padding
+          var nodeid  = _.get(n, 'nodeinfo.node_id')
+          stream.write(nodeid.padRight(padding," ") + ' IN AAAA ' + address + '\n')
+          var mapurl = config.map_template.replace("{node_id}",nodeid)
+          stream.write(nodeid.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+          if (_.has(n, 'nodeinfo.hostname')) {
+            var hostname = _.get(n, 'nodeinfo.hostname')
+            stream.write(hostname.padRight(padding," ") + ' IN AAAA ' + address + '\n') 
+            stream.write(hostname.padRight(padding," ") + ' IN TXT  "' + mapurl + '"\n')
+          }
+          stream.write('\n')
+        }
       }
     })
   }
