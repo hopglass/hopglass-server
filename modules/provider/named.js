@@ -38,20 +38,14 @@ var config = {
   "name_padding" : 40
 }
 
-module.exports = function(receiver, configData) {
-  _.merge(config, configData)
+module.exports = function(receiver, sharedConfig) {
+  _.merge(config, sharedConfig.named)
   
   //Named nodes.zone
   function getZone(stream, query) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
     var data = receiver.getData(query)
 
-    function get(n, what) {
-      if (_.has(n, what))
-        return _.get(n, what)
-      else
-        return 0
-    }
     String.prototype.padRight = function(l,c) {
       if (this.length > l) {
         return this
@@ -76,7 +70,7 @@ module.exports = function(receiver, configData) {
 
     var subdomain = config.subdomain_net.split(":").slice(0,2).join(":")
     
-    async.forEachOf(data, function(n, k, finished1) {
+    async.forEachOf(data, function(n, k, finished) {
       if (_.has(n, 'nodeinfo.network.addresses')) {
         var addrobj = _.get(n, 'nodeinfo.network.addresses')
         var address = undefined
@@ -99,6 +93,9 @@ module.exports = function(receiver, configData) {
           stream.write('\n')
         }
       }
+      finished()
+    }, function() {
+      stream.end()
     })
   }
 
