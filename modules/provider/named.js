@@ -100,6 +100,7 @@ module.exports = function(receiver, configData) {
         }
       }
     })
+    stream.end()
   }
 
   return {

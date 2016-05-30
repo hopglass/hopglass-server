@@ -29,6 +29,7 @@ Possible webserver queries
 |/wifi-aliases.txt      |Aliases file for Wifi Analyzer app|
 |/WifiAnalyzer_Alias.txt|Aliases file for Wifi Analyzer app|
 |/ffapi.json            |Freifunk API file|
+|/nodes.zone            |Named DNS zone file|
 
 ##Metrics values
 

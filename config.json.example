@@ -38,7 +38,28 @@
   "provider": {
     "offlineTime": 900,
     "metricsOfflineTime": 60,
-    "ffapiPath": "./ffapi/"
+    "ffapiPath": "./ffapi/",
+    "providers": [
+      { "module": "named",
+        "config": {
+          "map_template": "https://map.community.freifunk.net/#!v:g;n:{node_id}",
+          "origin":       "nodes.community.freifunk.net.",
+          "default_ttl":  86400,
+          "ns":           "ns1.community.freifunk.net.",
+          "postmaster":   "admin+community.freifunk.net.",
+          "refresh":      28800,
+          "retry":        7200,
+          "expire":       864000,
+          "min_ttl":      86400,
+          "nameservers":  [
+            "ns1.community.freifunk.net.",
+            "ns2.community.freifunk.net."
+          ],
+          "subdomain_net": "fddd:5d16:b5dd:0::/64",
+          "name_padding" : 40
+        }
+      }
+    ]
   },
   "webserver": {
     "ip": "::",
