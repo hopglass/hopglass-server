@@ -21,19 +21,19 @@ var _ = require('lodash')
 
 var config = {
   /* eslint-disable quotes */
-  "origin":       "nodes.community.freifunk.net.",
-  "defaultTtl":   86400,
-  "ns":           "ns1.community.freifunk.net.",
-  "postmaster":   "admin+community.freifunk.net.",
-  "refresh":      28800,
-  "retry":        7200,
-  "expire":       864000,
-  "minTtl":       86400,
-  "nameservers":  [
+  "origin": "nodes.community.freifunk.net.",
+  "defaultTtl": 86400,
+  "ns": "ns1.community.freifunk.net.",
+  "postmaster": "admin+community.freifunk.net.",
+  "refresh": 28800,
+  "retry": 7200,
+  "expire": 864000,
+  "minTtl": 86400,
+  "nameservers": [
     "ns1.community.freifunk.net.",
     "ns2.community.freifunk.net."
   ],
-  "subdomainNet": "fddd:5d16:b5dd:0::/64",
+  "subdomainNet": "0:0:0:0::/64",
   "namePadding" : 40
 }
 
