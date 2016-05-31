@@ -21,6 +21,7 @@ var _ = require('lodash')
 
 var config = {
   /* eslint-disable quotes */
+  //"mapTemplate": "https://map.community.freifunk.net/#!v:g;n:{node_id}",
   "origin": "nodes.community.freifunk.net.",
   "defaultTtl": 86400,
   "ns": "ns1.community.freifunk.net.",
@@ -33,7 +34,10 @@ var config = {
     "ns1.community.freifunk.net.",
     "ns2.community.freifunk.net."
   ],
-  "subdomainNet": "0:0:0:0::/64",
+  //"subdomainNet": [
+  //    "fd2b:a015:20bd::/48",
+  //    "fd4c:1f09:efca::/48"
+  //],
   "namePadding" : 40
 }
 
@@ -46,6 +50,9 @@ module.exports = function(receiver, sharedConfig) {
     var data = receiver.getData(query)
 
     function namedString(s) {
+      if (s == null) {
+        return ""
+      }
       //limit length
       var r = s.substring(0,50)
       //remove leading and trailing minus
@@ -64,25 +71,6 @@ module.exports = function(receiver, sharedConfig) {
       }
     }
 
-    function save(name) {
-      if (_.has(n, 'nodeinfo.network.addresses')) {
-        var addrobj = _.get(n, 'nodeinfo.network.addresses')
-        var address = undefined
-        for (var a in addrobj) {
-          for (var subdomain in subdomainNets) {
-            if (addrobj[a].indexOf(subdomain) === 0) {
-              address = addrobj[a]
-              stream.write(namedString(name) + ' IN AAAA ' + address + '\n')
-            }
-          }
-        }
-      }    
-      if (config.mapTemplate) {
-        var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
-        stream.write(namedString(nodeid) + ' IN TXT  "' + mapurl + '"\n')
-      }
-    }
-
     stream.write('$ORIGIN' + " " + config.origin + '\n')
     stream.write('$TTL ' + config.minTtl + '\n\n')
     stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
@@ -98,20 +86,34 @@ module.exports = function(receiver, sharedConfig) {
     stream.write('\n')
 
     var subdomainNets = []
-    for (var sd in config.subdomainNet) {
-      var v = config.subdomainNet[sd]
-      subdomainNets.push(v.split(":").slice(0,3).join(":"))
+    if (config.subdomainNet) {
+      for (var sd in config.subdomainNet) {
+        var v = config.subdomainNet[sd]
+        var mask = 3 //assume /48 subnet
+        if (v.indexOf("/") > 0) {
+          //rudimentary way of dealing with subnets
+          mask = Math.floor(v.split("/")[1]/16)
+        }
+        var snet = v.split(":").slice(0,mask).join(":")
+        subdomainNets.push(snet)
+      }
+    } else {
+      // match everything if not subnets are specified
+      subdomainNets.push("")
     }
     
     async.forEachOf(data, function(n, k, finished) {
 
       function save(name) {
+        if (name == null) {
+          return
+        }
         if (_.has(n, 'nodeinfo.network.addresses')) {
           var addrobj = _.get(n, 'nodeinfo.network.addresses')
           for (var a in addrobj) {
+            var address = addrobj[a]
             for (var s in subdomainNets) {
               if (addrobj[a].indexOf(subdomainNets[s]) === 0) {
-                var address = addrobj[a]
                 stream.write(namedString(name) + ' IN AAAA ' + address + '\n')
               }
             }

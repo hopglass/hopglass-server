@@ -53,9 +53,9 @@
         "ns2.community.freifunk.net."
       ],
       "subdomainNet": [
-        "1:0:0:0::/64",
-        "1:0:0:1::/64"
-      ]
+          "fd2b:a015:20bd::/48",
+          "fd4c:1f09:efca::/48"
+      ],
       "namePadding" : 40
     }
   },
