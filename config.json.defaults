@@ -52,7 +52,10 @@
         "ns1.community.freifunk.net.",
         "ns2.community.freifunk.net."
       ],
-      "subdomainNet": "0:0:0:0::/64",
+      "subdomainNet": [
+        "1:0:0:0::/64",
+        "1:0:0:1::/64"
+      ]
       "namePadding" : 40
     }
   },
