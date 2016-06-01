@@ -61,6 +61,10 @@ module.exports = function(receiver, config) {
         if (node.flags.online) {
           node.statistics.uptime = _.get(n, 'statistics.uptime')
           node.statistics.gateway = _.get(n, 'statistics.gateway')
+          node.statistics.nexthop = _.get(n, 'statistics.nexthop')
+          node.statistics.wireless = {}
+          node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
+          node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
           if (_.has(n, 'statistics.memory'))
             node.statistics.memory_usage =
                 (_.get(n, 'statistics.memory.total', 0)
