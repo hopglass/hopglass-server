@@ -72,7 +72,9 @@ module.exports = function(receiver, config) {
     counter.meshnodes = {}
     counter.meshnodes.online = 0
     counter.meshnodes.total = 0
-    counter.clients = 0
+    counter.clients = {}
+    counter.clients.online = 0
+    counter.clients.total = 0
     counter.traffic = {}
     counter.traffic.forward = 0
     counter.traffic.rx = 0
@@ -176,7 +178,8 @@ module.exports = function(receiver, config) {
       }, function() {
         stream.write('meshnodes_total ' + counter.meshnodes.total + '\n')
         stream.write('meshnodes_online_total ' + counter.meshnodes.online + '\n')
-        stream.write('total_clients ' + counter.clients + '\n')
+        stream.write('clients_total ' + counter.clients.total + '\n')
+        stream.write('clients_online_total ' + counter.clients.online + '\n')
 
         var labels = {}
 
