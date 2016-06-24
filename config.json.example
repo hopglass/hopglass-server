@@ -23,7 +23,7 @@
       "file": "./raw.json"
     },
     "purge": {
-      "maxAge": 14,
+      "maxAge": 14
     }
   },
   "provider": {
