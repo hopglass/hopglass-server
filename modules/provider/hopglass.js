@@ -141,11 +141,26 @@ module.exports = function(receiver, config) {
                 var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
                 link.tq = 255 / (tq ? tq : 1)
 
-                if (typeTable[src] === 'l2tp')
+                var ts = typeTable[src], td = typeTable[dest]
+                if (ts === 'l2tp' || td === 'l2tp') {
                   link.type = 'l2tp'
-                else if (typeTable[dest] === 'tunnel')
+                } else if (ts === 'fastd' || td === 'fastd') {
                   link.type = 'fastd'
-                else
+                } else if (ts === 'tunnel' || td === 'tunnel') {
+                  link.type = 'tunnel';
+
+                  if (td === 'tunnel' && (ts == undefined || ts === 'tunnel')) {
+                    var fds = 0, tds = 0, sis = 0
+                    if (_.get(data[macTable[dest]], 'nodeinfo.software.fastd.enabled', false)) fds++
+                    if (_.get(data[macTable[src]], 'nodeinfo.software.fastd.enabled', false)) fds++
+                    if (_.get(data[macTable[dest]], 'nodeinfo.software.tunneldigger.enabled', false)) tds++
+                    if (_.get(data[macTable[src]], 'nodeinfo.software.tunneldigger.enabled', false)) tds++
+                    if (_.has(data[macTable[dest]], 'nodeinfo.software')) sis++
+                    if (_.has(data[macTable[src]], 'nodeinfo.software')) sis++
+                    if (sis == fds && fds > 0) link.type = 'fastd'
+                    if (sis == tds && tds > 0) link.type = 'l2tp'
+                  }
+                } else
                   link.type = typeTable[dest]
 
                 if (isNaN(link.source)) {
