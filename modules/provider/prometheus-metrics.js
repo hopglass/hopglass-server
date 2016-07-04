@@ -116,9 +116,11 @@ module.exports = function(receiver, config) {
 
       delete labels['firmware']
 
-      if (isOnline(n, 'statistics')) {
+      if (isOnline(n)) {
         counter.clients += get(n, 'statistics.clients.total')
+      }
 
+      if (isOnline(n, 'statistics')) {
         save(n, stream, labels, 'statistics.clients.total')
         save(n, stream, labels, 'statistics.uptime')
         save(n, stream, labels, 'statistics.loadavg')
