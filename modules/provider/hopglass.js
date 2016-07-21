@@ -123,9 +123,19 @@ module.exports = function(receiver, config) {
       nodeEntry.node_id = macTable[mac]
       nodeTable[mac] = counter
       var node = data[macTable[mac]]
-      for (let m in _.get(node, 'neighbours.batadv')) {
-        nodeTable[m] = counter
-      }
+      if (_.has(node, 'neighbours.batadv'))
+        for (let m in _.get(node, 'neighbours.batadv')) {
+          nodeTable[m] = counter
+        }
+      if (_.has(node, 'nodeinfo.network.mesh'))
+        for (let bat in node.nodeinfo.network.mesh) {
+          for (let type in node.nodeinfo.network.mesh[bat].interfaces) {
+            if (typeof node.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
+              node.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(m) {
+                nodeTable[m] = counter
+              })
+          }
+	}
       if (!isOnline(node))
         nodeEntry.unseen = true
       counter++
@@ -142,6 +152,7 @@ module.exports = function(receiver, config) {
             if (typeof n.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
               n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
                 typeTable[d] = type
+                macTable[d] = k
               })
           }
         }
