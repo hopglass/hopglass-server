@@ -49,40 +49,56 @@ module.exports = function(receiver, config) {
     nJson.version = 2
     nJson.nodes = []
     nJson.timestamp = new Date().toISOString()
+    var macTable = {}
     async.forEachOf(data, function(n, k, finished) {
-      if (n.nodeinfo) {
-        var node = {}
-        node.nodeinfo = _.get(n, 'nodeinfo', {})
-        node.flags = {}
-        node.flags.gateway = _.get(n, 'flags.gateway')
-        node.flags.online = isOnline(n)
-        node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
-        node.statistics = {}
-        if (node.flags.online) {
-          node.statistics.uptime = _.get(n, 'statistics.uptime')
-          node.statistics.gateway = _.get(n, 'statistics.gateway')
-          node.statistics.gateway_nexthop = _.get(n, 'statistics.gateway_nexthop')
-          node.statistics.nexthop = _.get(n, 'statistics.nexthop')
-          node.statistics.wireless = {}
-          node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
-          node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
-          if (_.has(n, 'statistics.memory'))
-            node.statistics.memory_usage =
-                (_.get(n, 'statistics.memory.total', 0)
-              - _.get(n, 'statistics.memory.free', 0))
-              / _.get(n, 'statistics.memory.total', 0)
-          node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
-          node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
-          node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+      if (_.get(n, 'flags.gateway', false) && _.has(n, "nodeinfo.network.mesh")) {
+        for (let bat in n.nodeinfo.network.mesh) {
+          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+            n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
+              macTable[d] = k
+            })
+          }
         }
-        node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
-        node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
-        nJson.nodes.push(node)
       }
       finished()
     }, function() {
-      stream.writeHead(200, { 'Content-Type': 'application/json' })
-      stream.end(JSON.stringify(nJson))
+      async.forEachOf(data, function(n, k, finished) {
+        if (n.nodeinfo) {
+          var node = {}
+          node.nodeinfo = _.get(n, 'nodeinfo', {})
+          node.flags = {}
+          node.flags.gateway = _.get(n, 'flags.gateway')
+          node.flags.online = isOnline(n)
+          node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+          node.statistics = {}
+          if (node.flags.online) {
+            node.statistics.uptime = _.get(n, 'statistics.uptime')
+            node.statistics.gateway = _.get(n, 'statistics.gateway')
+            if (node.statistics.gateway in macTable)
+              node.statistics.gateway = macTable[node.statistics.gateway]
+            node.statistics.gateway_nexthop = _.get(n, 'statistics.gateway_nexthop')
+            node.statistics.nexthop = _.get(n, 'statistics.nexthop')
+            node.statistics.wireless = {}
+            node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
+            node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
+            if (_.has(n, 'statistics.memory'))
+              node.statistics.memory_usage =
+                  (_.get(n, 'statistics.memory.total', 0)
+                - _.get(n, 'statistics.memory.free', 0))
+                / _.get(n, 'statistics.memory.total', 0)
+            node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
+            node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
+            node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+          }
+          node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
+          node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
+          nJson.nodes.push(node)
+        }
+        finished()
+      }, function() {
+        stream.writeHead(200, { 'Content-Type': 'application/json' })
+        stream.end(JSON.stringify(nJson))
+      })
     })
   }
 
