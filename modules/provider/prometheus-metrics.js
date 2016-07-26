@@ -86,9 +86,10 @@ module.exports = function(receiver, config) {
       if (_.has(n, 'nodeinfo.network.mesh')) {
         for (let bat in n.nodeinfo.network.mesh) {
           for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
-            n.nodeinfo.network.mesh[bat].interfaces[type].forEach((d) => {
-              typeTable[d] = type
-            })
+            if (typeof n.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
+              n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
+                typeTable[d] = type
+              })
           }
         }
       }
