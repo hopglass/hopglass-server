@@ -51,7 +51,7 @@ module.exports = function(receiver, config) {
     nJson.timestamp = new Date().toISOString()
     var macTable = {}
     async.forEachOf(data, function(n, k, finished) {
-      if (_.get(n, 'flags.gateway', false) && _.has(n, "nodeinfo.network.mesh")) {
+      if (_.get(n, 'flags.gateway', false) && _.has(n, 'nodeinfo.network.mesh')) {
         for (let bat in n.nodeinfo.network.mesh) {
           for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
             n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
@@ -135,7 +135,7 @@ module.exports = function(receiver, config) {
                 nodeTable[m] = counter
               })
           }
-	}
+        }
       if (!isOnline(node))
         nodeEntry.unseen = true
       counter++
@@ -175,7 +175,7 @@ module.exports = function(receiver, config) {
                 } else if (ts === 'fastd' || td === 'fastd') {
                   link.type = 'fastd'
                 } else if (ts === 'tunnel' || td === 'tunnel') {
-                  link.type = 'tunnel';
+                  link.type = 'tunnel'
 
                   if (td === 'tunnel' && (ts == undefined || ts === 'tunnel')) {
                     var fds = 0, tds = 0, sis = 0
