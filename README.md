@@ -9,7 +9,21 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
+1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.1/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`  
+   (NOTE: If you don't used nodejs on your server, it will be fine to install it as it is, otherwise comment out the `prereq` call at the end of the script and do the needed steps manually.)  
+  `bash bootstrap.sh` will automatically process these steps:
+  - install the server in a folder of your choice (by default: `/opt/hopglass`)
+  - `apt-get install apt-transport-https curl git lsb-release`
+  - `apt-get remove nodejs nodejs-legacy npm`
+  - Install **NodeJS 6** from external repositories from `https://deb.nodesource.com/node_6.x $DISTRO` via `/etc/apt/sources.list.d/nodesource.list`
+  - `apt-get install nodejs git`
+  - `adduser --system --home=$INSTALL_DIR --group hopglass`
+  - As user `hopglass`:
+    - `git clone https://github.com/hopglass/hopglass-server -b v0.1.1 server; cd server`
+    - `npm install`
+  - Symlink systemd service and copy config files to:
+    - `/etc/hopglass-server/default/config.json`
+    - `/lib/systemd/system/hopglass-server@.service`
 2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
