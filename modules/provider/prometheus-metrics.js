@@ -117,10 +117,6 @@ module.exports = function(receiver, config) {
 
       delete labels['firmware']
 
-      if (isOnline(n)) {
-        counter.clients += get(n, 'statistics.clients.total')
-      }
-
       if (isOnline(n, 'statistics')) {
         save(n, stream, labels, 'statistics.clients.total')
         save(n, stream, labels, 'statistics.uptime')
@@ -129,6 +125,8 @@ module.exports = function(receiver, config) {
 
         if (_.has(n, 'statistics.memory.free') && _.has(n, 'statistics.memory.total'))
           save(n, stream, labels, 'statistics_memory_usage', null, (n.statistics.memory.total - n.statistics.memory.free) / n.statistics.memory.total)
+
+        counter.clients += get(n, 'statistics.clients.total')
 
         labels['mtype'] = 'user'
         labels['type'] = 'forward'
