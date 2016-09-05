@@ -30,6 +30,10 @@ function ask_user {
   while [ ! $DONE -eq 1 ]
   do
     echo
+    echo "This will install a recent version of NodeJS and the HopGlass Server."
+    echo "Your old version of NodeJS and all packages depending on it will be removed in the process."
+    echo "To abort the process, press CTRL+C."
+    echo
     echo "Where do you want to install the HopGlass Server? [/opt/hopglass]"
     read INSTALL_DIR
     INSTALL_DIR="${INSTALL_DIR:-/opt/hopglass}"
