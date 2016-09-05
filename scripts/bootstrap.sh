@@ -74,11 +74,12 @@ function prereq {
 
     if curl -f "https://deb.nodesource.com/node_6.x/dists/$DISTRO/Release" >/dev/null
     then
-      apt-get remove nodejs nodejs-legacy npm -y
       curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
       echo "deb https://deb.nodesource.com/node_6.x $DISTRO main" > /etc/apt/sources.list.d/nodesource.list
       echo "deb-src https://deb.nodesource.com/node_6.x $DISTRO main" >> /etc/apt/sources.list.d/nodesource.list
       apt-get update
+      # comment out the following line, if you installed nodejs 6 already (check with `apt-cache policy nodejs`)
+      apt-get remove nodejs nodejs-legacy npm
       apt-get install nodejs git -y
     else
       END_NOTICE="$END_NOTICE\nYour distribution is not supported by NodeJS. \nYou have to install a recent NodeJS version (>=4) manually. "
@@ -105,13 +106,12 @@ function prereq {
 
 function install {
   #Clone and install NodeJS libs
-  su - hopglass --shell /bin/bash <<'EOF'
-  git clone https://github.com/hopglass/hopglass-server -b v0.1.1 server
-  cd server
-  npm install
-  exit
-EOF
-#EOF can't be indented
+  su - hopglass --shell /bin/bash <<-EOF
+    git clone https://github.com/hopglass/hopglass-server -b v0.1.1 server
+    cd server
+    npm install
+    exit
+  EOF
 
   #Symlink systemd service and copy config file:
   #only for systemd-systems

@@ -55,17 +55,21 @@ module.exports = function(receiverId, configData, api) {
       if (err) {
         console.log('ERR: ' + err)
       } else {
-        var obj = JSON.parse(res)
-        var id
-        if (obj.nodeinfo) {
-          id = obj.nodeinfo.node_id
-        } else if (obj.statistics) {
-          id = obj.statistics.node_id
-        } else if (obj.neighbours) {
-          id = obj.neighbours.node_id
-        } else return
-
-        api.receiverCallback(id, obj, receiverId)
+        try {
+          var obj = JSON.parse(res)
+          var id
+          if (obj.nodeinfo) {
+            id = obj.nodeinfo.node_id
+          } else if (obj.statistics) {
+            id = obj.statistics.node_id
+          } else if (obj.neighbours) {
+            id = obj.neighbours.node_id
+          } else return
+          api.receiverCallback(id, obj, receiverId)
+        }
+        catch (err) {
+          console.log('JSON.parse ERROR! ' + err)
+        }
       }
     })
   })
