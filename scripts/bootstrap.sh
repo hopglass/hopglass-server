@@ -107,7 +107,7 @@ function prereq {
 function install {
   #Clone and install NodeJS libs
   su - hopglass --shell /bin/bash <<'EOF'
-    git clone https://github.com/hopglass/hopglass-server -b v0.1.2 server
+    git clone https://github.com/hopglass/hopglass-server -b v0.1.3 server
     cd server
     npm install
     exit
