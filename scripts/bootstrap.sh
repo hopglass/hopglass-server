@@ -106,12 +106,13 @@ function prereq {
 
 function install {
   #Clone and install NodeJS libs
-  su - hopglass --shell /bin/bash <<-EOF
+  su - hopglass --shell /bin/bash <<'EOF'
     git clone https://github.com/hopglass/hopglass-server -b v0.1.2 server
     cd server
     npm install
     exit
-  EOF
+EOF
+#EOF can't be indented
 
   #Symlink systemd service and copy config file:
   #only for systemd-systems
