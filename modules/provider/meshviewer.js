@@ -46,6 +46,37 @@ module.exports = function(receiver, config) {
     return res
   }
 
+  function getNodes(n) {
+    var node = {}
+    node.nodeinfo = _.get(n, 'nodeinfo', {})
+    node.flags = {}
+    node.flags.gateway = _.get(n, 'flags.gateway')
+    node.flags.online = isOnline(n)
+    var vpn_peers = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+    node.flags.uplink = vpn_peers.length > 0
+    node.statistics = {}
+    if (node.flags.online) {
+      if (vpn_peers.length > 0)
+        node.statistics.vpn_peers = vpn_peers
+      node.statistics.uptime = _.get(n, 'statistics.uptime')
+      node.statistics.gateway = _.get(n, 'statistics.gateway')
+      if (_.has(n, 'statistics.memory'))
+        node.statistics.memory_usage =
+            (_.get(n, 'statistics.memory.total', 0)
+          - _.get(n, 'statistics.memory.free', 0))
+          / _.get(n, 'statistics.memory.total', 0)
+      node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
+      node.statistics.clients = _.get(n, 'statistics.clients.total')
+      if (isNaN(node.statistics.clients))
+        node.statistics.clients = 0
+      node.statistics.loadavg = _.get(n, 'statistics.loadavg')
+      node.statistics.traffic = _.get(n, 'statistics.traffic')
+    }
+    node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
+    node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
+    return node
+  }
+
   function getNodesJson(stream, query) {
     var data = receiver.getData(query)
     var nJson = {}
@@ -54,36 +85,32 @@ module.exports = function(receiver, config) {
     nJson.timestamp = new Date().toISOString()
     async.forEachOf(data, function(n, k, finished) {
       if (n.nodeinfo) {
-        var node = {}
-        node.nodeinfo = _.get(n, 'nodeinfo', {})
-        node.flags = {}
-        node.flags.gateway = _.get(n, 'flags.gateway')
-        node.flags.online = isOnline(n)
-        var vpn_peers = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
-        node.flags.uplink = vpn_peers.length > 0
-        node.statistics = {}
-        if (node.flags.online) {
-          if (vpn_peers.length > 0)
-            node.statistics.vpn_peers = vpn_peers
-          node.statistics.uptime = _.get(n, 'statistics.uptime')
-          node.statistics.gateway = _.get(n, 'statistics.gateway')
-          if (_.has(n, 'statistics.memory'))
-            node.statistics.memory_usage =
-                (_.get(n, 'statistics.memory.total', 0)
-              - _.get(n, 'statistics.memory.free', 0))
-              / _.get(n, 'statistics.memory.total', 0)
-          node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
-          node.statistics.clients = _.get(n, 'statistics.clients.total')
-          if (isNaN(node.statistics.clients))
-            node.statistics.clients = 0
-          node.statistics.loadavg = _.get(n, 'statistics.loadavg')
-        }
-        node.lastseen = _.get(n, 'lastseen', new Date().toISOString())
-        node.firstseen = _.get(n, 'firstseen', new Date().toISOString())
-        nJson.nodes.push(node)
+        nJson.nodes.push(getNodes(n))
       }
       finished()
     }, function() {
+      stream.writeHead(200, { 'Content-Type': 'application/json' })
+      stream.end(JSON.stringify(nJson))
+    })
+  }
+
+  function getNodesV1Json(stream, query) {
+    var data = receiver.getData(query)
+    var nJson = {}
+    nJson.version = 1
+    nJson.nodes = []
+    nJson.timestamp = new Date().toISOString()
+    async.forEachOf(data, function(n, k, finished) {
+      if (n.nodeinfo) {
+        nJson.nodes.push(getNodes(n))
+      }
+      finished()
+    }, function() {
+      var nodesv1 = {}
+      nJson.nodes.forEach( function (d) {
+        nodesv1[d.nodeinfo.node_id] = d
+      })
+      nJson.nodes = nodesv1
       stream.writeHead(200, { 'Content-Type': 'application/json' })
       stream.end(JSON.stringify(nJson))
     })
@@ -175,7 +202,9 @@ module.exports = function(receiver, config) {
   var exports = {
     /* eslint-disable quotes */
     "mv/nodes.json": getNodesJson,
-    "mv/graph.json": getGraphJson
+    "mv/graph.json": getGraphJson,
+    "mv1/nodes.json": getNodesV1Json,
+    "mv1/graph.json": getGraphJson
   }
   return exports
 }
