@@ -24,6 +24,7 @@ Possible webserver queries
 |/mv/nodes.json         |Meshviewer nodes.json v2|
 |/mv/graph.json         |Meshviewer graph.json v1|
 |/raw.json              |Raw data collected, same as the `raw.json` save file|
+|/nodelist.json         |nodelist.json format (github.com/ffansbach/nodelist)|
 |/hosts                 |hosts file to be placed in /etc/hosts|
 |/metrics               |Prometheus metrics|
 |/wifi-aliases.txt      |Aliases file for Wifi Analyzer app|
