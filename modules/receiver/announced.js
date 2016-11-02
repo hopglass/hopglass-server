@@ -98,6 +98,6 @@ module.exports = function(receiverId, configData, api) {
     retrieve('neighbours')
     setTimeout(function() {
       retrieve('statistics')
-    }, 6000);
+    }, 6000)
   }, config.interval.statistics * 1000)
 }
