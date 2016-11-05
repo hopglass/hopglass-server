@@ -29,20 +29,6 @@ module.exports = function(receiver, config) {
       return true
   }
 
-  function parsePeerGroup(pg) {
-    for (let i in pg) {
-      if (i == 'peers') {
-        for (let j in pg[i]) {
-          if (pg[i][j])
-            return true
-        }
-      } else {
-        if (parsePeerGroup(pg[i]))
-          return true
-      }
-    }
-  }
-
   function getNodesJson(stream, query) {
     var data = receiver.getData(query)
     var nJson = {}
@@ -69,7 +55,6 @@ module.exports = function(receiver, config) {
           node.flags = {}
           node.flags.gateway = _.get(n, 'flags.gateway')
           node.flags.online = isOnline(n)
-          node.flags.uplink = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
           node.statistics = {}
           if (node.flags.online) {
             node.statistics.uptime = _.get(n, 'statistics.uptime')
