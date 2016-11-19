@@ -47,6 +47,9 @@ module.exports = function(receiver, config) {
     function save(n, stream, labels, path, name, value) {
       var newLabels = []
       Object.keys(labels).map(function(key) {
+        // escape special chars (\, ", newline)
+        if (typeof labels[key] === 'string')
+          labels[key] = labels[key].replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')
         newLabels.push(key + '="' + labels[key] + '"')
       })
       labels = '{' + newLabels.join(',') + '}'
