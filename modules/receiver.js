@@ -172,6 +172,10 @@ module.exports = function (configData) {
           return clients < Math.abs(v) ? true : false
         }
       })
+    case 'nodeid':
+      return _.filter(data, function(o) {
+        return _.get(o, 'nodeinfo.node_id') == query.value
+      })
     default:
       return data
     }
