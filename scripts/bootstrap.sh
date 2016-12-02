@@ -12,10 +12,10 @@ function ask_user {
     echo
     echo 'Your system is not supported.'
     exit 2
-  elif ! pidof systemd >/dev/null
+  elif [ ! -d "/usr/lib/systemd" ]
   then
     echo
-    echo 'Your system does not run systemd. It is only partitially supported. '
+    echo 'Your system does not use systemd. It is only partitially supported. '
     echo 'Do you want to continue? [y/N]'
     read CONTINUE
     if [ "$CONTINUE" == "y" ]
