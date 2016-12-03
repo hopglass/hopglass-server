@@ -116,7 +116,7 @@ EOF
 
   #Symlink systemd service and copy config file:
   #only for systemd-systems
-  if pidof systemd >/dev/null
+  if [ -d "/usr/lib/systemd" ]
   then
     mkdir -p /etc/hopglass-server/default
     cp $INSTALL_DIR/server/config.json.example /etc/hopglass-server/default/config.json
