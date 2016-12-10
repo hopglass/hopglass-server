@@ -12,7 +12,7 @@ function ask_user {
     echo
     echo 'Your system is not supported.'
     exit 2
-  elif [ ! -d "/usr/lib/systemd" ]
+  elif ! readlink -f /sbin/init | grep -q "systemd"
   then
     echo
     echo 'Your system does not use systemd. It is only partitially supported. '
@@ -116,7 +116,7 @@ EOF
 
   #Symlink systemd service and copy config file:
   #only for systemd-systems
-  if [ -d "/usr/lib/systemd" ]
+  if readlink -f /sbin/init | grep -q "systemd"
   then
     mkdir -p /etc/hopglass-server/default
     cp $INSTALL_DIR/server/config.json.example /etc/hopglass-server/default/config.json
