@@ -107,9 +107,13 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
 ***Warning: untested, unsupported, not recommended***
 
 1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
-2. Create a start script in `/usr/local/bin/` similar to this:
-   `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/$1/config.json"`
-3. Create an init-script in `/etc/init.d/`.
+2. `INSTALL_DIR="/opt/hopglass/"; cp "$INSTALL_DIR"/server/config.json.example /etc/hopglass-server/default/config.json;
+    chown -R hopglass:hopglass /etc/hopglass-server`
+3. `cp server/aliases.json.example server/aliases.json`
+4. `echo "{}">server/raw.json`
+5. Create a start script in `/usr/local/bin/` similar to this:
+   `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/default/config.json"`
+6. Create an init-script in `/etc/init.d/`.
 
 ##After installation
 
