@@ -12,10 +12,10 @@ function ask_user {
     echo
     echo 'Your system is not supported.'
     exit 2
-  elif ! pidof systemd >/dev/null
+  elif ! readlink -f /sbin/init | grep -q "systemd"
   then
     echo
-    echo 'Your system does not run systemd. It is only partitially supported. '
+    echo 'Your system does not use systemd. It is only partitially supported. '
     echo 'Do you want to continue? [y/N]'
     read CONTINUE
     if [ "$CONTINUE" == "y" ]
@@ -116,7 +116,7 @@ EOF
 
   #Symlink systemd service and copy config file:
   #only for systemd-systems
-  if pidof systemd >/dev/null
+  if readlink -f /sbin/init | grep -q "systemd"
   then
     mkdir -p /etc/hopglass-server/default
     cp $INSTALL_DIR/server/config.json.example /etc/hopglass-server/default/config.json
