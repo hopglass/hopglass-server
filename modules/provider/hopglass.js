@@ -37,7 +37,7 @@ module.exports = function(receiver, config) {
     nJson.timestamp = new Date().toISOString()
     var macTable = {}
     async.forEachOf(data, function(n, k, finished) {
-      if (_.get(n, 'flags.gateway', false) && _.has(n, 'nodeinfo.network.mesh')) {
+      if (_.has(n, 'nodeinfo.network.mesh')) {
         for (let bat in n.nodeinfo.network.mesh) {
           for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
             n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
@@ -62,7 +62,11 @@ module.exports = function(receiver, config) {
             if (node.statistics.gateway in macTable)
               node.statistics.gateway = macTable[node.statistics.gateway]
             node.statistics.gateway_nexthop = _.get(n, 'statistics.gateway_nexthop')
+            if (node.statistics.gateway_nexthop in macTable)
+              node.statistics.gateway_nexthop = macTable[node.statistics.gateway_nexthop]
             node.statistics.nexthop = _.get(n, 'statistics.nexthop')
+            if (node.statistics.nexthop in macTable)
+              node.statistics.nexthop = macTable[node.statistics.nexthop]
             node.statistics.wireless = {}
             node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
             node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
