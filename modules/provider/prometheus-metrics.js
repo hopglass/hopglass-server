@@ -107,9 +107,6 @@ module.exports = function(receiver, config) {
       if (_.has(n, 'nodeinfo.hostname'))
         labels['hostname'] = _.get(n, 'nodeinfo.hostname')
 
-      if (isOnline(n, 'statistics') && _.has(n, 'statistics.gateway'))
-        labels['gateway'] = _.get(n, 'statistics.gateway')
-
       if (_.has(n, 'nodeinfo.system.site_code'))
         labels['site'] = _.get(n, 'nodeinfo.system.site_code')
 
