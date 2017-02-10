@@ -9,6 +9,18 @@
           }
         }
       },
+      { "module": "alfred",
+        "alfred_json": "/usr/bin/alfred-json",
+        "sockets": [
+          "/var/run/alfred-bat0.sock"
+        ],
+        "config": {
+          "interval": {
+            "statistics": 60,
+            "nodeinfo": 500
+          }
+        }
+      },
       { "module": "aliases",
         "config": {
           "file": "./aliases.json"
