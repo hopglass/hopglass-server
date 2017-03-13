@@ -124,11 +124,11 @@ module.exports = function (configData) {
     switch (query.filter) {
     case 'site':
       return _.pickBy(data, function(o) {
-        return _.get(o, 'nodeinfo.system.site_code', 'unknown') === query.value ? true : false
+        return _.includes(_.split(query.value, ','), _.get(o, 'nodeinfo.system.site_code', 'unknown'))
       })
     case 'firmware_release':
       return _.pickBy(data, function(o) {
-        return _.get(o, 'nodeinfo.software.firmware.release', 'unknown') === query.value ? true : false
+        return _.includes(_.split(query.value, ','), _.get(o, 'nodeinfo.software.firmware.release', 'unknown'))
       })
     case 'firstseen':
       return _.pickBy(data, function(o) {
@@ -174,7 +174,7 @@ module.exports = function (configData) {
       })
     case 'nodeid':
       return _.pickBy(data, function(o) {
-        return _.get(o, 'nodeinfo.node_id') == query.value
+        return _.includes(_.split(query.value, ','), _.get(o, 'nodeinfo.node_id', 'unknown'))
       })
     default:
       return data
