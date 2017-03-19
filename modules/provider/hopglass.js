@@ -23,9 +23,9 @@ var _ = require('lodash')
 module.exports = function(receiver, config) {
 
   function isOnline(node) {
-    if (node)
-      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.offlineTime * 1000
-    else
+      if (node)
+        return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.offlineTime * 1000
+      else
       return true
   }
 
@@ -67,9 +67,25 @@ module.exports = function(receiver, config) {
             node.statistics.nexthop = _.get(n, 'statistics.nexthop')
             if (node.statistics.nexthop in macTable)
               node.statistics.nexthop = macTable[node.statistics.nexthop]
-            node.statistics.wireless = {}
-            node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
-            node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
+            if (_.has(n, 'statistics.wireless')) {
+              node.statistics.wireless = {}
+              if (Array.isArray(n.statistics.wireless)) {
+                for (let freq in n.statistics.wireless)
+                  if (freq.frequency && freq.busy && freq.rx && freq.tx) {
+                    var newfreq = {}
+                    newfreq.rx = freq.rx / freq.active
+                    newfreq.tx = freq.tx / freq.active
+                    newfreq.wait = (freq.busy - freq.rx - freq.tx) / freq.active
+                    newfreq.free = (freq.active - freq.busy) / freq.active
+                    node.statistics.wireless['airtime'+freq.frequency.substring(0, 1)] = newfreq
+                  }
+              } else {
+                if (_.has(n, 'statistics.wireless.airtime2'))
+                  node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
+                if (_.has(n, 'statistics.wireless.airtime5'))
+                  node.statistics.wireless.airtime5 = _.get(n, 'statistics.wireless.airtime5')
+              }
+            }
             if (_.has(n, 'statistics.memory'))
               node.statistics.memory_usage =
                   (_.get(n, 'statistics.memory.total', 0)
