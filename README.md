@@ -1,9 +1,9 @@
-#HopGlass Server
+# HopGlass Server
 The HopGlass Server collects data from Freifunk networks and processes it to be used in [HopGlass](https://github.com/hopglass/hopglass), for statistics and other purposes.
 
 **Warning: The HopGlass Server is subject to major changes. Updates may require manual intervention.**
 
-##How to use
+## How to use
 
 **ArchLinux or Debian-based systems using systemd (preferred)**
 
@@ -34,9 +34,9 @@ Possible webserver queries
 |/ffapi.json            |Freifunk API file|
 |/nodes.zone            |Named DNS zone file|
 
-##Metrics values
+## Metrics values
 
-###per node (all with the labels `hostname`, `nodeid` and `gateway`):
+### per node (all with the labels `hostname`, `nodeid` and `gateway`):
 
 - statistics.clients.total
 - statistics.uptime
@@ -44,14 +44,14 @@ Possible webserver queries
 - statistics.loadavg
 - statistics.memory_usage
 
-###total values:
+### total values:
 
 - meshnodes_total
 - meshnodes_online_total
 - total_clients
 - total_traffic
 
-##Development timeline
+## Development timeline
 
 **oldmaster (outdated)**
 
@@ -98,7 +98,7 @@ Possible webserver queries
 - definition of the transitional data format
 - definition of the configuration format
 
-##Installation without systemd
+## Installation without systemd
 
 **Debian-based systems without systemd**
 
@@ -115,7 +115,7 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
    `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/default/config.json"`
 6. Create an init-script in `/etc/init.d/`.
 
-##After installation
+## After installation
 
 You might want to
 - Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
