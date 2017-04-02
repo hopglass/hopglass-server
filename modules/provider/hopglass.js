@@ -23,10 +23,10 @@ var _ = require('lodash')
 module.exports = function(receiver, config) {
 
   function isOnline(node) {
-      if (node)
-        return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.offlineTime * 1000
-      else
-      return true
+    if (node)
+      return Math.abs((node.lastseen ? new Date(node.lastseen) : new Date()) - new Date()) < config.offlineTime * 1000
+
+    return true
   }
 
   function getNodesJson(stream, query) {
