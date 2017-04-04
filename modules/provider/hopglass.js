@@ -70,15 +70,16 @@ module.exports = function(receiver, config) {
             if (_.has(n, 'statistics.wireless')) {
               node.statistics.wireless = {}
               if (Array.isArray(n.statistics.wireless)) {
-                for (let freq in n.statistics.wireless)
+                async.forEachOf(n.statistics.wireless, function(freq, k, finished) {
                   if (freq.frequency && freq.busy && freq.rx && freq.tx) {
                     var newfreq = {}
                     newfreq.rx = freq.rx / freq.active
                     newfreq.tx = freq.tx / freq.active
                     newfreq.wait = (freq.busy - freq.rx - freq.tx) / freq.active
                     newfreq.free = (freq.active - freq.busy) / freq.active
-                    node.statistics.wireless['airtime'+freq.frequency.substring(0, 1)] = newfreq
+                    node.statistics.wireless['airtime'+freq.frequency.toString().substring(0, 1)] = newfreq
                   }
+                })
               } else {
                 if (_.has(n, 'statistics.wireless.airtime2'))
                   node.statistics.wireless.airtime2 = _.get(n, 'statistics.wireless.airtime2')
