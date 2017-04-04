@@ -70,7 +70,7 @@ module.exports = function(receiver, config) {
             if (_.has(n, 'statistics.wireless')) {
               node.statistics.wireless = {}
               if (Array.isArray(n.statistics.wireless)) {
-                async.forEachOf(n.statistics.wireless, function(freq, k, finished) {
+                n.statistics.wireless.forEach(function(freq, k) {
                   if (freq.frequency && freq.busy && freq.rx && freq.tx) {
                     var newfreq = {}
                     newfreq.rx = freq.rx / freq.active
