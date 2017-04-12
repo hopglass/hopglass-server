@@ -86,7 +86,7 @@ module.exports = function(receiver, config) {
     var nodeTable = {}
     var typeTable = {}
     async.forEachOf(data, function(n, k, finished1) {
-      if (_.has(n, 'nodeinfo.network.mesh')) {
+     if (_.has(n, 'nodeinfo.network.mesh'))
         for (let bat in n.nodeinfo.network.mesh) {
           for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
             if (typeof n.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
@@ -95,7 +95,6 @@ module.exports = function(receiver, config) {
               })
           }
         }
-      }
       counter.meshnodes.total++
 
       if (isOnline(n))
