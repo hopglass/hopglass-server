@@ -74,7 +74,7 @@ module.exports = function(receiver, sharedConfig) {
     stream.write('$ORIGIN' + " " + config.origin + '\n')
     stream.write('$TTL ' + config.minTtl + '\n\n')
     stream.write('@ IN SOA ' + config.ns + ' ' + config.postmaster.replace("@", "+") + ' (\n')
-    stream.write(' ' + Date.now() + ' ; serial number\n')
+    stream.write(' ' + Math.round(Date.now() / 1000) + ' ; serial number\n')
     stream.write(' ' + config.refresh + ' ; Refresh\n')
     stream.write(' ' + config.retry + ' ; Retry\n')
     stream.write(' ' + config.expire + ' ; Expire\n')
