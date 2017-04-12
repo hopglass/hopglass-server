@@ -24,6 +24,7 @@ var config = {
   /* eslint-disable quotes */
   receivers: [
     { module: "announced" },
+    { module: "alfred" },
     { module: "aliases",
       overlay: true
     }
