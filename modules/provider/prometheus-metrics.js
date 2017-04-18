@@ -146,6 +146,20 @@ module.exports = function(receiver, config) {
         save(n, stream, labels, 'statistics.traffic.mgmt_rx.bytes', 'statistics_traffic')
         labels['type'] = 'tx'
         save(n, stream, labels, 'statistics.traffic.mgmt_tx.bytes', 'statistics_traffic')
+
+        if (_.has(n, 'statistics.wireless')) {
+          if (Array.isArray(n.statistics.wireless)) {
+            for (let freq_index in n.statistics.wireless) {
+              labels['mtype'] = 'airtime' + n.statistics.wireless[freq_index].frequency.toString().substring(0, 1)
+              for (let airtime_type in n.statistics.wireless[freq_index]) {
+                if (airtime_type != 'frequency') {
+                  labels['type'] = airtime_type
+                  save(n, stream, labels, 'statistics.wireless.[' + freq_index + '].' + airtime_type, 'statistics_airtime')
+                }
+              }
+            }
+          }
+        }
       }
 
       counter.traffic.forward += get(n, 'statistics.traffic.forward.bytes')
