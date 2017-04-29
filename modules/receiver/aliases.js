@@ -18,6 +18,7 @@
 
 var fs = require('fs')
 var _ = require('lodash')
+var hjson = require('hjson')
 
 var config = {
   /* eslint-disable quotes */
@@ -34,7 +35,7 @@ module.exports = function(receiverId, configData, api) {
   var aliases = {}
 
   try {
-    aliases = JSON.parse(fs.readFileSync(config.aliases.file, 'utf8'))
+    aliases = hjson.parse(fs.readFileSync(config.aliases.file, 'utf8'))
   } catch (err) {
     console.warn('alias file "' + config.aliases.file + '" doesn\'t exist, using empty')
   }

@@ -20,6 +20,7 @@
 
 var fs = require('fs')
 var _ = require('lodash')
+var hjson = require('hjson')
 
 //start with default config
 var config = {
@@ -32,17 +33,17 @@ var config = {
 
 var argv = require('minimist')(process.argv.slice(2))
 
-argv.config = _.get(argv, 'config', './config.json')
+let configPath = _.get(argv, 'config', './config.json')
 
 //read config file sync
 try {
-  var configFile = JSON.parse(fs.readFileSync(argv.config, 'utf8'))
+  var configFile = hjson.parse(fs.readFileSync(configPath, 'utf8'))
 
   if (_.has(configFile, 'receiver.ifaces'))
     config.receiver.ifaces = undefined
 
   _.merge(config, configFile)
-  console.info('successfully parsed config file "' + argv.config + '"')
+  console.info('successfully parsed config file "' + configPath + '"')
 } catch (err) {
   console.warn('config file "' + argv.config + '" doesn\'t exist, using defaults')
 }
