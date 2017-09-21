@@ -23,7 +23,7 @@ var _ = require('lodash')
 var config = {
   /* eslint-disable quotes */
   "target": {
-    "ip": "ff02::1",
+    "ip": "ff02::2:1001",
     "port": 1001
   },
   "port": 45123,
