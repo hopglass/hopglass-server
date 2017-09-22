@@ -4,7 +4,7 @@
       { "module": "announced",
         "config": {
           "target": {
-            "ip": "ff02::2:1001",
+ 	    "ip": "ff02::2:1001",
             "port": 1001
           },
           "port": 45123,
