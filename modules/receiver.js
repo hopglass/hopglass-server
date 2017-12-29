@@ -41,7 +41,7 @@ var config = {
   }
 }
 
-module.exports = function (configData) {
+module.exports = function (observer, configData) {
   if (configData.ifaces)
     delete config.ifaces
 
@@ -64,7 +64,7 @@ module.exports = function (configData) {
   api.receiverCallback  = receiverCallback
   api.sharedConfig = config
   api.getRaw = getRaw
-  for (let i in config.receivers) {
+  for (var i in config.receivers) {
     var r = config.receivers[i]
     receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
   }
@@ -103,6 +103,8 @@ module.exports = function (configData) {
       raw[id].neighbours = obj.neighbours
       raw[id].lastupdate.neighbours = new Date().toISOString()
     }
+
+    observer.dataReceived(raw[id])
   }
 
   function getRaw() {

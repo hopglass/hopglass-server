@@ -62,5 +62,8 @@
   "webserver": {
     "ip": "::",
     "port": 4000
+  },
+  "observer": {
+    "observers": []
   }
 }

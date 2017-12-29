@@ -28,7 +28,8 @@ var config = {
   "core": { },
   "receiver": { },
   "provider": { },
-  "webserver": { }
+  "webserver": { },
+  "observer": { }
 }
 
 var argv = require('minimist')(process.argv.slice(2))
@@ -50,6 +51,7 @@ try {
 
 argv = undefined
 
-var receiver = require('./modules/receiver')(config.receiver)
+var observer = require('./modules/observer')(config.observer)
+var receiver = require('./modules/receiver')(observer, config.receiver)
 var provider = require('./modules/provider')(receiver, config.provider)
 require('./modules/webserver')(provider, config.webserver)
