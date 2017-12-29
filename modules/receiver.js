@@ -66,7 +66,13 @@ module.exports = function (observer, configData) {
   api.getRaw = getRaw
   for (var i in config.receivers) {
     var r = config.receivers[i]
-    receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
+    try {
+      receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
+    } catch(err) {
+      console.err('Error while initializing receiver "' + r.module + '": ', err)
+      console.err('Exiting...')
+      process.exit(1)
+    }
   }
 
   function receiverCallback(id, obj, receiverId) {

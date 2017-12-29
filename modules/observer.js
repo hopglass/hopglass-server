@@ -36,12 +36,22 @@ module.exports = function (configData) {
 
   for (var i in config.observers) {
     var r = config.observers[i]
-    observerList.push(require(__dirname + '/observer/' + r.module)(r.config))
+    try {
+      observerList.push(require(__dirname + '/observer/' + r.module)(r.config))
+    } catch(err) {
+      console.err('Error while initializing observer "' + configData.observers[i].module + '": ', err)
+      console.err('Exiting...')
+      process.exit(1)
+    }
   }
 
   function dataReceived(data) {
     for (var i in observerList) {
-      observerList[i].dataReceived(data)
+      try {
+        observerList[i].dataReceived(data)
+      } catch(err) {
+        console.err('Error in observer "' + configData.observers[i].module + '", function dataReceived: ', err)
+      }
     }
   }
 

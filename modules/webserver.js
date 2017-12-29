@@ -35,7 +35,11 @@ module.exports = function(index, configData) {
 
     for (let path in index) {
       if (url.pathname == '/' + path) {
-        index[path](stream, url.query)
+        try {
+          index[path](stream, url.query)
+        } catch(err) {
+          console.err('Error while handling request "' + path + '": ', err)
+        }
         success = true
       }
     }

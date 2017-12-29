@@ -32,8 +32,15 @@ module.exports = function (receiver, configData) {
 
   require('fs').readdirSync(__dirname + '/provider').forEach(function(e) {
     var re = /\.js$/
-    if (re.test(e))
-      _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))
+    if (re.test(e)) {
+      try {
+        _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))
+      } catch(err) {
+        console.err('Error while initializing provider "' + e + '": ', err)
+        console.err('Exiting...')
+        process.exit(1)
+      }
+    }
   })
 
   return exports
