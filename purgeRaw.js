@@ -2,8 +2,8 @@
 'use strict'
 
 var _ = require('lodash')
-,   fs = require('fs')
-, async = require('async')
+var fs = require('fs')
+var async = require('async')
 
 var argv = require('minimist')(process.argv.slice(2))
 

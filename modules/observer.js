@@ -16,9 +16,7 @@
 
 'use strict'
 
-var fs = require('fs')
 var _ = require('lodash')
-var async = require('async')
 
 var config = {
   /* eslint-disable quotes */
