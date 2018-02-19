@@ -19,6 +19,7 @@
 var fs = require('fs')
 var _ = require('lodash')
 var async = require('async')
+var cluster = require('cluster')
 
 var config = {
   /* eslint-disable quotes */
@@ -64,14 +65,16 @@ module.exports = function (observer, configData) {
   api.receiverCallback  = receiverCallback
   api.sharedConfig = config
   api.getRaw = getRaw
-  for (var i in config.receivers) {
-    var r = config.receivers[i]
-    try {
-      receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
-    } catch(err) {
-      console.err('Error while initializing receiver "' + r.module + '": ', err)
-      console.err('Exiting...')
-      process.exit(1)
+  if (cluster.isMaster) {
+    for (var i in config.receivers) {
+      var r = config.receivers[i]
+      try {
+        receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
+      } catch(err) {
+        console.err('Error while initializing receiver "' + r.module + '": ', err)
+        console.err('Exiting...')
+        process.exit(1)
+      }
     }
   }
 
@@ -200,8 +203,10 @@ module.exports = function (observer, configData) {
       finished()
     })
   }
-  purgeData()
-  setInterval(purgeData, config.purge.interval*1000)
+  if (cluster.isMaster) {
+    purgeData()
+    setInterval(purgeData, config.purge.interval*1000)
+  }
 
   function storeData() {
     try {
@@ -214,15 +219,18 @@ module.exports = function (observer, configData) {
       console.error(err)
     }
   }
-  setInterval(storeData, config.storage.interval*1000)
+  if (cluster.isMaster)
+    setInterval(storeData, config.storage.interval*1000)
 
   process.on('SIGINT', function () {
-    storeData()
+    if (cluster.isMaster)
+      storeData()
     process.exit(2)
   })
 
   process.on('SIGTERM', function () { // systemd kills with SIGTERM
-    storeData()
+    if (cluster.isMaster)
+      storeData()
     process.exit(0)
   })
 
