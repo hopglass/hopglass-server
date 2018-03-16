@@ -65,7 +65,6 @@ Possible webserver queries
 - clients
 - nodeid
 
-
 ## Development timeline
 
 **oldmaster (outdated)**
