@@ -23,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/hopglass/hopglass-server/issues"
   },
-  "homepage": "https://github.com/hopglass/hopglass-server#readme"
+  "homepage": "https://github.com/hopglass/hopglass-server#readme",
+  "bin": "hopglass-server.js"
 }
