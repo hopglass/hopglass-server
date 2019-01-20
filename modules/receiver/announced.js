@@ -79,7 +79,7 @@ module.exports = function(receiverId, configData, api) {
 
   function retrieve(stat, address) {
     var ip = address ? address : config.target.ip
-    var req = new Buffer('GET ' + stat)
+    var req = Buffer.from('GET ' + stat)
     api.sharedConfig.ifaces.forEach(function(iface) {
       collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
         if (err) console.error(err)
