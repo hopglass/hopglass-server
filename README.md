@@ -51,6 +51,20 @@ Possible webserver queries
 - total_clients
 - total_traffic
 
+## Filter / Query's
+
+### Syntax
+- [nodes|nodelist].json?filter=[filterName]&value=[filterValue]
+
+### Filternames
+- site
+- firmware_release
+- firstseen
+- lastseen
+- uptime
+- clients
+- nodeid
+
 ## Development timeline
 
 **oldmaster (outdated)**
