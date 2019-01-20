@@ -9,7 +9,9 @@
     "lodash": "^4.17.11",
     "minimist": "^1.2.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^5.12.1"
+  },
   "scripts": {
     "start": "node hopglass-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
