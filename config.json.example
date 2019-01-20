@@ -3,9 +3,12 @@
     "receivers": [
       { "module": "announced",
         "config": {
-          "interval": {
-            "statistics": 60,
-            "nodeinfo": 500
+          "timings": {
+            "base": 300,
+            "multipliers": {
+              "statistics": 10,
+              "neighbours": 10
+            }
           }
         }
       },
