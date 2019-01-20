@@ -5,8 +5,8 @@
   "main": "hopglass-server.js",
   "dependencies": {
     "async": "^2.3.0",
-    "hjson": "^2.4.2",
-    "lodash": "^4.17.4",
+    "hjson": "^3.1.2",
+    "lodash": "^4.17.11",
     "minimist": "^1.2.0"
   },
   "devDependencies": {},
