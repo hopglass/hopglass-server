@@ -9,12 +9,6 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
-### Precautions
-
-If you are planning to install the hopglass web frontend on the same server, you 
-should install it first, because the `bootstrap.sh` script will re-install
-another version of npm and hopglass web will not compile with that.
-
 ### Installation
 
 1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
