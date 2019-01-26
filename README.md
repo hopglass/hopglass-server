@@ -9,8 +9,10 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 **i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
 
+### Installation
+
 1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
-2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json`.
+2. Review and edit the default configuration located at `/etc/hopglass-server/default/config.json` (i.e. change "ifaces")
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
 
@@ -130,6 +132,8 @@ i.e. Debian Wheezy or older, Ubuntu 14.10 or older
 6. Create an init-script in `/etc/init.d/`.
 
 ## After installation
+
+Ensure, that the ports, you configured in `/etc/hopglass-server/default/config.json` are open in your firewall (default port 1001 UDP and 45123 UDP).
 
 You might want to
 - Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
