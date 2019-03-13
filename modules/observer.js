@@ -37,8 +37,8 @@ module.exports = function (configData) {
     try {
       observerList.push(require(__dirname + '/observer/' + r.module)(r.config))
     } catch(err) {
-      console.err('Error while initializing observer "' + configData.observers[i].module + '": ', err)
-      console.err('Exiting...')
+      console.error('Error while initializing observer "' + configData.observers[i].module + '": ', err)
+      console.error('Exiting...')
       process.exit(1)
     }
   }
@@ -48,7 +48,7 @@ module.exports = function (configData) {
       try {
         observerList[i].dataReceived(data)
       } catch(err) {
-        console.err('Error in observer "' + configData.observers[i].module + '", function dataReceived: ', err)
+        console.error('Error in observer "' + configData.observers[i].module + '", function dataReceived: ', err)
       }
     }
   }

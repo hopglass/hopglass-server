@@ -69,8 +69,8 @@ module.exports = function (observer, configData) {
     try {
       receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
     } catch(err) {
-      console.err('Error while initializing receiver "' + r.module + '": ', err)
-      console.err('Exiting...')
+      console.error('Error while initializing receiver "' + r.module + '": ', err)
+      console.error('Exiting...')
       process.exit(1)
     }
   }
