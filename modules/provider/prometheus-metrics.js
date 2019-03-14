@@ -118,6 +118,7 @@ module.exports = function(receiver, config) {
 
       save(n, stream, labels, null, 'online', isOnline(n) ? 1 : 0)
 
+      delete labels['gateway']
       delete labels['firmware']
 
       if (isOnline(n)) {
