@@ -48,11 +48,6 @@ module.exports = function(receiverId, configData, api) {
     throw(err)
   })
 
-  collector.on('listening', function() {
-    collector.setTTL(1) // restrict hop-limit to own subnet / should prevent loops (default was: 64)
-    console.log('collector listening on port ' + config.port)
-  })
-
   collector.on('message', function(msg) {
     zlib.inflateRaw(msg, function(err, res) {
       if (err) {
@@ -81,15 +76,21 @@ module.exports = function(receiverId, configData, api) {
     var ip = address ? address : config.target.ip
     var req = Buffer.from('GET ' + stat)
     api.sharedConfig.ifaces.forEach(function(iface) {
+      collector.setMulticastInterface(ip + '%' + iface)
       collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
         if (err) console.error(err)
       })
     })
   }
 
+  collector.on('listening', function() {
+    collector.setTTL(1) // restrict hop-limit to own subnet / should prevent loops (default was: 64)
+    console.log('collector listening on port ' + config.port)
+    retrieve('nodeinfo')
+  })
+
   collector.bind(config.port)
 
-  retrieve('nodeinfo')
   setInterval(function() {
     retrieve('nodeinfo')
   }, config.timings.base * 1000)
