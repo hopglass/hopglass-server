@@ -36,8 +36,8 @@ module.exports = function (receiver, configData) {
       try {
         _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))
       } catch(err) {
-        console.err('Error while initializing provider "' + e + '": ', err)
-        console.err('Exiting...')
+        console.error('Error while initializing provider "' + e + '": ', err)
+        console.error('Exiting...')
         process.exit(1)
       }
     }

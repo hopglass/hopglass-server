@@ -38,7 +38,7 @@ module.exports = function(index, configData) {
         try {
           index[path](stream, url.query)
         } catch(err) {
-          console.err('Error while handling request "' + path + '": ', err)
+          console.error('Error while handling request "' + path + '": ', err)
         }
         success = true
       }
