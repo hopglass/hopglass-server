@@ -116,6 +116,9 @@ module.exports = function(receiver, config) {
       if (_.has(n, 'nodeinfo.software.firmware.release'))
         labels['firmware'] = _.get(n, 'nodeinfo.software.firmware.release')
 
+      if (_.has(n, 'nodeinfo.hardware.model'))
+        labels['model'] = _.get(n, 'nodeinfo.hardware.model')
+
       save(n, stream, labels, null, 'online', isOnline(n) ? 1 : 0)
 
       delete labels['gateway']
