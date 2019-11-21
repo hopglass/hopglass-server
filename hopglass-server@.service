@@ -3,10 +3,10 @@ Description=The HopGlass Server collects data from the Freifunk network (%I)
 
 [Service]
 Type=simple
-User=hopglass
-Group=hopglass
-WorkingDirectory=/etc/hopglass-server/%I/
-ExecStart=/usr/bin/node --harmony /opt/hopglass/server/hopglass-server.js
+DynamicUser=yes
+WorkingDirectory=/var/lib/hopglass-server
+StateDirectory=hopglass-server
+ExecStart=/usr/bin/env node /opt/hopglass/server/hopglass-server.js
 Restart=always
 
 [Install]

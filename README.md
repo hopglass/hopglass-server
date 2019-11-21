@@ -8,7 +8,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 ### Installation
 
 1. Install a recent version of NodeJS. It is recommended to use your distribution's package manager: https://nodejs.org/en/download/package-manager/
-2. Clone the hopglass-server repository to /opt/hopglass-server
+2. Clone the hopglass-server repository to /opt/hopglass/server
 2. Copy the systemd service file to /etc/systemd/system, or create an init-script if your distribution does not support systemd.
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
