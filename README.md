@@ -5,17 +5,22 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 ## How to use
 
-**ArchLinux or Debian-based systems using systemd (preferred)**
-
-**i.e. Debian Jessie or newer, Ubuntu 15.04 or newer**
-
 ### Installation
 
-1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
-2. Optionally create a configuration at `/etc/hopglass-server/default/config.json` with properties that must 
-  differ from the default configuration (i.e. change "ifaces")
+1. Install a recent version of NodeJS. It is recommended to use your distribution's package manager: https://nodejs.org/en/download/package-manager/
+2. Clone the hopglass-server repository to /opt/hopglass-server
+2. Copy the systemd service file to /etc/systemd/system, or create an init-script if your distribution does not support systemd.
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 4. (Optional) Automatically start the HopGlass Server at boot: `# systemctl enable hopglass-server@default`
+
+### After installation
+
+Ensure, that the ports, you configured in `/etc/hopglass-server/default/config.json` are open in your firewall (default port 1001 UDP and 45123 UDP).
+
+You might want to
+- Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
+- Install [HopGlass](https://github.com/hopglass/hopglass)
+- Install [Prometheus](http://prometheus.io/) and [Grafana](http://grafana.org/)
 
 Possible webserver queries
 --------------------------
@@ -114,29 +119,3 @@ Possible webserver queries
 - definition of the Prometheus metrics format
 - definition of the transitional data format
 - definition of the configuration format
-
-## Installation without systemd
-
-**Debian-based systems without systemd**
-
-i.e. Debian Wheezy or older, Ubuntu 14.10 or older
-
-***Warning: untested, unsupported, not recommended***
-
-1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
-2. `INSTALL_DIR="/opt/hopglass/"; cp "$INSTALL_DIR"/server/config.json.example /etc/hopglass-server/default/config.json;
-    chown -R hopglass:hopglass /etc/hopglass-server`
-3. `cp server/aliases.json.example server/aliases.json`
-4. `echo "{}">server/raw.json`
-5. Create a start script in `/usr/local/bin/` similar to this:
-   `su - hopglass --shell /bin/bash -c "cd server; node hopglass-server.js --config /etc/hopglass-server/default/config.json"`
-6. Create an init-script in `/etc/init.d/`.
-
-## After installation
-
-Ensure, that the ports, you configured in `/etc/hopglass-server/default/config.json` are open in your firewall (default port 1001 UDP and 45123 UDP).
-
-You might want to
-- Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
-- Install [HopGlass](https://github.com/hopglass/hopglass)
-- Install [Prometheus](http://prometheus.io/) and [Grafana](http://grafana.org/)
