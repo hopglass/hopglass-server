@@ -6,9 +6,21 @@
         "longitude": 5.0093256235123
       },
       "owner": {
-        "contact": "info@example.org"
+        "contact": "donald@example.org"
       },
       "hostname": "Donald-Outdoor"
+    }
+  },
+  "ae8ab2f3aaaa": {
+    "nodeinfo": {
+      "location": {
+        "latitude": 48.107345345,
+        "longitude": 5.1234321454
+      },
+      "owner": {
+        "contact": "daisy@example.org"
+      },
+      "hostname": "Daisy-Outdoor"
     }
   }
 }
