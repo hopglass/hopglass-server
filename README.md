@@ -151,17 +151,19 @@ Note: The default paths for configuration and state files might have changed. Ma
 - new provider: dns zone output (eberhab)
 - probably more I forgot
 
-**v0.1.3 (current)**
+**v0.1.3 (outdated)**
 
 - fix the install script
 
-**v1.0.0 (next)**
+**v1.0.0 (current)**
 
+- various bugfixes (many contributors)
 - remove obsolete installation scripts
 - rewrite systemd service file to use DynamicUser and StateDirectory options
 - new provider: meshviewers nodes.json v1 (rotanid)
 - allow hjson for aliases and config
 - receiver/announced: offset queries for different data typesnodeinfo/statistics
+- receiver/announced: Ensure multicast interface is set (tobleminer)
 - add Nix derivation and flake
 - Recommended NodeJS version: 12+
 
