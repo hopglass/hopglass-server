@@ -2,9 +2,9 @@
     "inputs": {
         "nixpkgs": {
             "inputs": {},
-            "narHash": "sha256-v9BFTC6hxIB9Y5xggRUnWoEDQ4FqsooFuBNrFE7VUjc=",
+            "narHash": "sha256-O+hsL9OLW4/I99aOsNoLDfARcQR7+sQcqoD63SR3BIU=",
             "originalUrl": "nixpkgs",
-            "url": "github:petabyteboy/nixpkgs/76aa0e16d5fd61cc6bfa2ad9ad72a9ebafe2c84d"
+            "url": "github:petabyteboy/nixpkgs/6397ba47f9fd5328e796d1503df2c11832669a39"
         }
     },
     "version": 3
