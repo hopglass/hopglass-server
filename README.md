@@ -34,7 +34,9 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 ### After installation
 
-Ensure, that the ports, you configured in `/etc/hopglass-server/default/config.json` are open in your firewall (default port 1001 UDP and 45123 UDP).
+Optionally create a configuration file in `/etc/hopglass-server/default/config.json`, and an aliases file in `/var/lib/hopglass-server/default/aliases.json`.
+Ensure, that the ports, you configured are open in your firewall (default port 1001 UDP and 45123 UDP).
+
 
 You might want to
 - Install a webserver (search for Nginx or Apache) and configure a reverse proxy and gzip-compression
@@ -71,6 +73,8 @@ For a start, you can try this:
 1. restart the service
 
        systemctl restart hopglass-server@default
+
+Note: The default paths for configuration and state files might have changed. Make sure your config.json, raw.json and aliases.json are located in `/etc/hopglass-server/default/config.json`, `/var/lib/hopglass-server/default/aliases.json` and `/var/lib/hopglass-server/default/raw.json` respectively.
 
 ## Possible webserver queries
 
@@ -151,20 +155,21 @@ For a start, you can try this:
 
 - fix the install script
 
-**v0.2 (next)**
+**v1.0.0 (next)**
+
+- remove obsolete installation scripts
+- rewrite systemd service file to use DynamicUser and StateDirectory options
+- new provider: meshviewers nodes.json v1 (rotanid)
+- allow hjson for aliases and config
+- receiver/announced: offset queries for different data typesnodeinfo/statistics
+- add Nix derivation and flake
+- Recommended NodeJS version: 12+
+
+**v2.0.0 (next)**
 
 - provide a graph-generation implementation for all providers
 - graph caching
 - handle gateway flag correctly without aliases
 - alfred receiver
-
-**v0.3**
-
 - new HopGlass data format
 - network-transparent receivers
-
-**v1.0**
-
-- definition of the Prometheus metrics format
-- definition of the transitional data format
-- definition of the configuration format
