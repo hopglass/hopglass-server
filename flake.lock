@@ -1,0 +1,11 @@
+{
+    "inputs": {
+        "nixpkgs": {
+            "inputs": {},
+            "narHash": "sha256-v9BFTC6hxIB9Y5xggRUnWoEDQ4FqsooFuBNrFE7VUjc=",
+            "originalUrl": "nixpkgs",
+            "url": "github:petabyteboy/nixpkgs/76aa0e16d5fd61cc6bfa2ad9ad72a9ebafe2c84d"
+        }
+    },
+    "version": 3
+}
