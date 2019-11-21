@@ -1,8 +1,6 @@
 # HopGlass Server
 The HopGlass Server collects data from Freifunk networks and processes it to be used in [HopGlass](https://github.com/hopglass/hopglass), for statistics and other purposes.
 
-**Warning: The HopGlass Server is subject to major changes. Updates may require manual intervention.**
-
 ## How to use
 
 ### Installation
@@ -22,8 +20,34 @@ You might want to
 - Install [HopGlass](https://github.com/hopglass/hopglass)
 - Install [Prometheus](http://prometheus.io/) and [Grafana](http://grafana.org/)
 
-Possible webserver queries
---------------------------
+### Update
+
+**Warning: The HopGlass Server is subject to major changes. Updates may require manual intervention.**
+
+For a start, you can try this:
+
+1. pull
+
+        git pull
+
+1. Copy the new systemd service file to `/etc/systemd/system` or `/lib/systemd/system/` and reload with:
+
+        systemctl daemon-reload
+
+1. check for possible needed changes in the `config.json`
+
+        diff config.json config.json.example
+
+1. rebuild the server:
+
+        npm install
+
+1. restart the service
+
+        service hopglass-server@default restart
+
+
+## Possible webserver queries
 
 |Query Location         |Description|
 |---------------------- |---|
