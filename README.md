@@ -7,40 +7,30 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 1. Install a recent version of NodeJS. It is recommended to use your distribution's package manager: https://nodejs.org/en/download/package-manager/
 
-2. Clone the hopglass-server repository to /opt/hopglass/server
+2. Clone the hopglass-server repository to `/opt/hopglass/server`
 
-```
-        # mkdir -p /opt/hopglass
-        # git clone https://github.com/hopglass/hopglass-server /opt/hopglass/server
-```
+       mkdir -p /opt/hopglass
+       git clone https://github.com/hopglass/hopglass-server /opt/hopglass/server
 
-3. Install NPM dependencies with either yarn or npm
+3. Install NPM dependencies with either `yarn` or `npm`
+      
+       cd /opt/hopglass/server
+       yarn install
+       # OR
+       npm install
 
-```
-        # cd /opt/hopglass/server
-        # yarn install
-        # #OR
-        # npm install
-```
+4. Copy the systemd service file to `/etc/systemd/system`, or create an init-script if your distribution does not support systemd.
 
-4. Copy the systemd service file to /etc/systemd/system, or create an init-script if your distribution does not support systemd.
-
-```
-        # cp /opt/hopglass/server/hopglass-server@.service /etc/systemd/system/
-        # systemctl daemon-reload
-```
+       cp /opt/hopglass/server/hopglass-server@.service /etc/systemd/system/
+       systemctl daemon-reload
 
 5. Start the HopGlass Server: `# systemctl start hopglass-server@default`
 
-```
-        # systemctl start hopglass-server@default
-```
+       systemctl start hopglass-server@default
 
 6. (Optional) Automatically start the HopGlass Server at boot: 
 
-```
-        # systemctl enable hopglass-server@default
-```
+       systemctl enable hopglass-server@default
 
 ### After installation
 
@@ -59,38 +49,28 @@ For a start, you can try this:
 
 1. pull
 
-```
-        # cd /opt/hopglass/server
-        # git pull
-```
+       cd /opt/hopglass/server
+       git pull
 
 1. Copy the new systemd service file to `/etc/systemd/system` or `/lib/systemd/system/` and reload with:
 
-```
-        # cp /opt/hopglass/server/hopglass-server@.service /etc/systemd/system/
-        # systemctl daemon-reload
-```
+       cp /opt/hopglass/server/hopglass-server@.service /etc/systemd/system/
+       systemctl daemon-reload
 
 1. check for possible needed changes in the `config.json`
 
-```
-        # diff config.json config.json.example
-```
+       diff config.json config.json.example
 
 1. rebuild the server:
 
-```
-        # cd /opt/hopglass/server
-        # yarn install
-        # #OR
-        # npm install
-```
+       cd /opt/hopglass/server
+       yarn install
+       #OR
+       npm install
 
 1. restart the service
 
-```
-        # systemctl restart hopglass-server@default
-```
+       systemctl restart hopglass-server@default
 
 ## Possible webserver queries
 
