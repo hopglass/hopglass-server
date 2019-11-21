@@ -11,7 +11,7 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
 
 ### Installation
 
-1. Run `# wget https://raw.githubusercontent.com/hopglass/hopglass-server/v0.1.3/scripts/bootstrap.sh; bash bootstrap.sh; rm bootstrap.sh`
+1. there is a bootstrap file, which worked in v0.1.3 at https://github.com/hopglass/hopglass-server/blob/v0.1.3/scripts/bootstrap.sh, have a look to see how to install the current master accordingly
 2. Optionally create a configuration at `/etc/hopglass-server/default/config.json` with properties that must 
   differ from the default configuration (i.e. change "ifaces")
 3. Start the HopGlass Server: `# systemctl start hopglass-server@default`
