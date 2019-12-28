@@ -166,6 +166,7 @@ Note: The default paths for configuration and state files might have changed. Ma
 - receiver/announced: Ensure multicast interface is set (tobleminer)
 - add Nix derivation and flake
 - Recommended NodeJS version: 12+
+- provider/prometheus: only add gateway label to online metric
 
 **v2.0.0 (next)**
 
