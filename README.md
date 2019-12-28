@@ -97,7 +97,7 @@ Note: The default paths for configuration and state files might have changed. Ma
 
 ## Metrics values
 
-### per node (all with the labels `hostname`, `nodeid` and `gateway`):
+### per node (all with the labels `hostname`, and `nodeid`):
 
 - statistics.clients.total
 - statistics.uptime
