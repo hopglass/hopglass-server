@@ -53,7 +53,7 @@ module.exports = function(receiver, config) {
           var node = {}
           node.nodeinfo = _.get(n, 'nodeinfo', {})
           node.flags = {}
-          node.flags.gateway = _.get(n, 'flags.gateway')
+          node.flags.gateway = _.get(n, 'nodeinfo.vpn') || _.get(n, 'nodeinfo.gateway')
           node.flags.online = isOnline(n)
           node.statistics = {}
           if (node.flags.online) {
