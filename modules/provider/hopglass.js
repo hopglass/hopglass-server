@@ -94,7 +94,12 @@ module.exports = function(receiver, config) {
                 - _.get(n, 'statistics.memory.cached', 0))
                 / _.get(n, 'statistics.memory.total', 0)
             node.statistics.rootfs_usage = _.get(n, 'statistics.rootfs_usage')
-            node.statistics.clients = _.get(n, 'statistics.clients.total', 0)
+            node.statistics.clients = {
+              total: _.get(n, 'statistics.clients.total', 0),
+              wifi: _.get(n, 'statistics.clients.wifi', 0),
+              wifi24: _.get(n, 'statistics.clients.wifi24', 0),
+              wifi5: _.get(n, 'statistics.clients.wifi5', 0)
+            }
             node.statistics.loadavg = _.get(n, 'statistics.loadavg')
           }
           node.lastseen = _.get(n, 'lastseen', new Date().toISOString())

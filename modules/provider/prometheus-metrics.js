@@ -130,6 +130,9 @@ module.exports = function(receiver, config) {
 
       if (isOnline(n, 'statistics')) {
         save(n, stream, labels, 'statistics.clients.total')
+        save(n, stream, labels, 'statistics.clients.wifi')
+        save(n, stream, labels, 'statistics.clients.wifi24')
+        save(n, stream, labels, 'statistics.clients.wifi5')
         save(n, stream, labels, 'statistics.uptime')
         save(n, stream, labels, 'statistics.loadavg')
         save(n, stream, labels, 'statistics.rootfs_usage')
