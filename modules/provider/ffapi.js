@@ -16,19 +16,20 @@
 
 'use strict'
 
-var fs = require('fs')
-var _ = require('lodash')
+const fs = require('fs')
+const _ = require('lodash')
 
 module.exports = function(receiver, config) {
   function getFFApiJson(stream, query) {
-    var data = receiver.getData(query)
+    const data = receiver.getData(query)
 
-    var site = 'all'
+    let site = 'all'
     if (query.filter == 'site' && query.value)
       site = query.value
 
+    let obj
     try {
-      var obj = JSON.parse(fs.readFileSync(config.ffapiPath + site + '.json', 'UTF-8'))
+      obj = JSON.parse(fs.readFileSync(config.ffapiPath + site + '.json', 'UTF-8'))
     } catch(err) {
       console.log(err)
       stream.writeHead(404, { 'Content-Type': 'text/plain' })

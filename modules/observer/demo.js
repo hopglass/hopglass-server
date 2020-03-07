@@ -16,9 +16,9 @@
 
 'use strict'
 
-var _ = require('lodash')
+const _ = require('lodash')
 
-var config = {
+const config = {
 }
 
 module.exports = function(configData) {
@@ -28,7 +28,7 @@ module.exports = function(configData) {
     console.log(data)
   }
 
-  var exports = {}
+  const exports = {}
   exports.dataReceived = dataReceived
   return exports
 }

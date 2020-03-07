@@ -16,9 +16,9 @@
 
 'use strict'
 
-var _ = require('lodash')
+const _ = require('lodash')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   "offlineTime": 900,
   "metricsOfflineTime": 60,
@@ -28,10 +28,10 @@ var config = {
 module.exports = function (receiver, configData) {
   _.merge(config, configData)
 
-  var exports = {}
+  const exports = {}
 
   require('fs').readdirSync(__dirname + '/provider').forEach(function(e) {
-    var re = /\.js$/
+    const re = /\.js$/
     if (re.test(e)) {
       try {
         _.merge(exports, require(__dirname + '/provider/' + e)(receiver, config))

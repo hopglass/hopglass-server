@@ -16,11 +16,11 @@
 
 'use strict'
 
-var dgram = require('dgram')
-var zlib = require('zlib')
-var _ = require('lodash')
+const dgram = require('dgram')
+const zlib = require('zlib')
+const _ = require('lodash')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   "target": {
     "ip": "ff02::2:1001",
@@ -41,7 +41,7 @@ delete require.cache[__filename]
 module.exports = function(receiverId, configData, api) {
   _.merge(config, configData)
 
-  var collector = dgram.createSocket('udp6')
+  const collector = dgram.createSocket('udp6')
 
   //collector callbacks
   collector.on('error', function(err) {
@@ -54,8 +54,8 @@ module.exports = function(receiverId, configData, api) {
         console.log('ERR: ' + err)
       } else {
         try {
-          var obj = JSON.parse(res)
-          var id
+          const obj = JSON.parse(res)
+          let id
           if (obj.nodeinfo) {
             id = obj.nodeinfo.node_id
           } else if (obj.statistics) {
@@ -73,8 +73,8 @@ module.exports = function(receiverId, configData, api) {
   })
 
   function retrieve(stat, address) {
-    var ip = address ? address : config.target.ip
-    var req = Buffer.from('GET ' + stat)
+    const ip = address ? address : config.target.ip
+    const req = Buffer.from('GET ' + stat)
     api.sharedConfig.ifaces.forEach(function(iface) {
       collector.setMulticastInterface(ip + '%' + iface)
       collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {

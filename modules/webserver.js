@@ -16,10 +16,10 @@
 
 'use strict'
 
-var http = require('http')
-var _ = require('lodash')
+const http = require('http')
+const _ = require('lodash')
 
-var config = {
+const config = {
   ip: '::',
   port: 4000
 }
@@ -30,10 +30,10 @@ module.exports = function(index, configData) {
   http.createServer(function(req, stream) {
     stream.setHeader('Access-Control-Allow-Origin', '*')
 
-    var url = require('url').parse(req.url, true) // true to get query as object
-    var success = false
+    const url = require('url').parse(req.url, true) // true to get query as object
+    let success = false
 
-    for (let path in index) {
+    for (const path in index) {
       if (url.pathname == '/' + path) {
         try {
           index[path](stream, url.query)

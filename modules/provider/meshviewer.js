@@ -16,8 +16,8 @@
 
 'use strict'
 
-var async = require('async')
-var _ = require('lodash')
+const async = require('async')
+const _ = require('lodash')
 
 
 module.exports = function(receiver, config) {
@@ -30,15 +30,15 @@ module.exports = function(receiver, config) {
   }
 
   function parsePeerGroup(pg) {
-    var res = []
-    for (let i in pg) {
+    let res = []
+    for (const i in pg) {
       if (i == 'peers') {
-        for (let j in pg[i]) {
+        for (const j in pg[i]) {
           if (pg[i][j])
             res.push(j)
         }
       } else {
-        var subRes = parsePeerGroup(pg[i])
+        const subRes = parsePeerGroup(pg[i])
         if (subRes)
           res = [].concat(res).concat(subRes)
       }
@@ -47,12 +47,12 @@ module.exports = function(receiver, config) {
   }
 
   function getNodes(n) {
-    var node = {}
+    const node = {}
     node.nodeinfo = _.get(n, 'nodeinfo', {})
     node.flags = {}
     node.flags.gateway = _.get(n, 'flags.gateway')
     node.flags.online = isOnline(n)
-    var vpn_peers = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
+    const vpn_peers = parsePeerGroup(_.get(n, 'statistics.mesh_vpn'))
     node.flags.uplink = vpn_peers.length > 0
     node.statistics = {}
     if (node.flags.online) {
@@ -80,8 +80,8 @@ module.exports = function(receiver, config) {
   }
 
   function getNodesJson(stream, query) {
-    var data = receiver.getData(query)
-    var nJson = {}
+    const data = receiver.getData(query)
+    const nJson = {}
     nJson.version = 2
     nJson.nodes = []
     nJson.timestamp = new Date().toISOString()
@@ -97,8 +97,8 @@ module.exports = function(receiver, config) {
   }
 
   function getNodesV1Json(stream, query) {
-    var data = receiver.getData(query)
-    var nJson = {}
+    const data = receiver.getData(query)
+    const nJson = {}
     nJson.version = 1
     nJson.nodes = []
     nJson.timestamp = new Date().toISOString()
@@ -108,7 +108,7 @@ module.exports = function(receiver, config) {
       }
       finished()
     }, function() {
-      var nodesv1 = {}
+      const nodesv1 = {}
       nJson.nodes.forEach( function (d) {
         nodesv1[d.nodeinfo.node_id] = d
       })
@@ -119,8 +119,8 @@ module.exports = function(receiver, config) {
   }
 
   function getGraphJson(stream, query) {
-    var data = receiver.getData(query)
-    var gJson = {}
+    const data = receiver.getData(query)
+    const gJson = {}
     gJson.timestamp = new Date().toISOString()
     gJson.version = 1
     gJson.batadv = {}
@@ -129,19 +129,19 @@ module.exports = function(receiver, config) {
     gJson.batadv.nodes = []
     gJson.batadv.links = []
     gJson.batadv.graph = null
-    var nodeTable = {}
-    var macTable = {}
-    var typeTable = {}
-    var linkTable = {}
-    var counter = 0
+    const nodeTable = {}
+    const macTable = {}
+    const typeTable = {}
+    const linkTable = {}
+    let counter = 0
     function createEntry(mac) {
-      var nodeEntry = {}
+      const nodeEntry = {}
       nodeEntry.id = mac
       nodeTable[mac] = counter
-      var node = data[macTable[mac]]
+      const node = data[macTable[mac]]
       if (isOnline(node))
         nodeEntry.node_id = macTable[mac]
-      for (let m in _.get(node, 'neighbours.batadv')) {
+      for (const m in _.get(node, 'neighbours.batadv')) {
         nodeTable[m] = counter
       }
       counter++
@@ -149,12 +149,12 @@ module.exports = function(receiver, config) {
     }
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac'))
-        for (let mac in n.neighbours.batadv) {
+        for (const mac in n.neighbours.batadv) {
           macTable[mac] = k
         }
       if (_.has(n, 'nodeinfo.network.mesh'))
-        for (let bat in n.nodeinfo.network.mesh) {
-          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+        for (const bat in n.nodeinfo.network.mesh) {
+          for (const type in n.nodeinfo.network.mesh[bat].interfaces) {
             n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
               typeTable[d] = type
             })
@@ -164,16 +164,16 @@ module.exports = function(receiver, config) {
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
         if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-          for (let dest in n.neighbours.batadv) {
+          for (const dest in n.neighbours.batadv) {
             if (_.has(n.neighbours.batadv[dest], 'neighbours'))
-              for (let src in n.neighbours.batadv[dest].neighbours) {
-                var link = {}
+              for (const src in n.neighbours.batadv[dest].neighbours) {
+                const link = {}
                 link.source = nodeTable[src]
                 link.target = nodeTable[dest]
-                var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
+                const tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
                 link.tq = 255 / (tq ? tq : 1)
 
-                var revLink = linkTable[link.target + '-' + link.source]
+                const revLink = linkTable[link.target + '-' + link.source]
                 if (revLink) {
                   gJson.batadv.links.splice(gJson.batadv.links.indexOf(revLink), 1)
                   link.tq += Math.round(link.tq+(revLink.tq-link.tq)/2)
@@ -201,7 +201,7 @@ module.exports = function(receiver, config) {
     })
   }
 
-  var exports = {
+  const exports = {
     /* eslint-disable quotes */
     "mv/nodes.json": getNodesJson,
     "mv/graph.json": getGraphJson,

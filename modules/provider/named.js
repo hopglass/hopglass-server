@@ -16,10 +16,10 @@
 
 'use strict'
 
-var async = require('async')
-var _ = require('lodash')
+const async = require('async')
+const _ = require('lodash')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   //"mapTemplate": "https://map.community.freifunk.net/#!v:g;n:{node_id}",
   "origin": "nodes.community.freifunk.net.",
@@ -47,14 +47,14 @@ module.exports = function(receiver, sharedConfig) {
   //Named nodes.zone
   function getZone(stream, query) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
-    var data = receiver.getData(query)
+    const data = receiver.getData(query)
 
     function namedString(s) {
       if (s == null) {
         return ""
       }
       //limit length
-      var r = s.substring(0,50)
+      let r = s.substring(0,50)
       //remove leading and trailing minus
       r = r.replace(/^-+/,'').replace(/-+$/,'')
       //remove non alphanumerics and make lc
@@ -63,7 +63,7 @@ module.exports = function(receiver, sharedConfig) {
       //no underscores and no dots
       r = r.replace(/_+/g,'-').replace(/\.+/g,'-')
       // padding
-      var l = config.namePadding
+      const l = config.namePadding
       if (r.length > l) {
         return r
       } else {
@@ -80,21 +80,21 @@ module.exports = function(receiver, sharedConfig) {
     stream.write(' ' + config.expire + ' ; Expire\n')
     stream.write(' ' + config.minTtl + ' ; Min TTL\n')
     stream.write(')\n')
-    for (var ns in config.nameservers) { 
+    for (const ns in config.nameservers) { 
       stream.write('@ IN NS ' + config.nameservers[ns] + '\n')
     }
     stream.write('\n')
 
-    var subdomainNets = []
+    const subdomainNets = []
     if (config.subdomainNet) {
-      for (var sd in config.subdomainNet) {
-        var v = config.subdomainNet[sd]
-        var mask = 3 //assume /48 subnet
+      for (const sd in config.subdomainNet) {
+        const v = config.subdomainNet[sd]
+        let mask = 3 //assume /48 subnet
         if (v.indexOf("/") > 0) {
           //rudimentary way of dealing with subnets
           mask = Math.floor(v.split("/")[1]/16)
         }
-        var snet = v.split(":").slice(0,mask).join(":")
+        const snet = v.split(":").slice(0,mask).join(":")
         subdomainNets.push(snet)
       }
     } else {
@@ -103,16 +103,15 @@ module.exports = function(receiver, sharedConfig) {
     }
     
     async.forEachOf(data, function(n, k, finished) {
-
       function save(name) {
         if (name == null) {
           return
         }
         if (_.has(n, 'nodeinfo.network.addresses')) {
-          var addrobj = _.get(n, 'nodeinfo.network.addresses')
-          for (var a in addrobj) {
-            var address = addrobj[a]
-            for (var s in subdomainNets) {
+          const addrobj = _.get(n, 'nodeinfo.network.addresses')
+          for (const a in addrobj) {
+            const address = addrobj[a]
+            for (const s in subdomainNets) {
               if (addrobj[a].indexOf(subdomainNets[s]) === 0) {
                 stream.write(namedString(name) + ' IN AAAA ' + address + '\n')
               }
@@ -120,15 +119,15 @@ module.exports = function(receiver, sharedConfig) {
           }
         }    
         if (config.mapTemplate) {
-          var mapurl = config.mapTemplate.replace("{node_id}",nodeid)
+          const mapurl = config.mapTemplate.replace("{node_id}", name)
           stream.write(namedString(name) + ' IN TXT  "' + mapurl + '"\n')
         }
       }
 
-      var nodeid  = _.get(n, 'nodeinfo.node_id')
+      const nodeid  = _.get(n, 'nodeinfo.node_id')
       save(nodeid)
       if (_.has(n, 'nodeinfo.hostname')) {
-        var hostname = _.get(n, 'nodeinfo.hostname')
+        const hostname = _.get(n, 'nodeinfo.hostname')
         if (hostname !== nodeid) {
           save(hostname)
         }

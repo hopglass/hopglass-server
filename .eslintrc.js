@@ -23,6 +23,13 @@ module.exports = {
         "semi": [
             "error",
             "never"
+        ],
+        "no-var": [
+            "error"
+        ],
+        "prefer-const": [
+            "error",
+            { "destructuring": "all" }
         ]
     }
 };

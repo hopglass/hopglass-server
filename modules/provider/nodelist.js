@@ -16,8 +16,8 @@
 
 'use strict'
 
-var async = require('async')
-var _ = require('lodash')
+const async = require('async')
+const _ = require('lodash')
 
 module.exports = function(receiver, config) {
 
@@ -30,13 +30,13 @@ module.exports = function(receiver, config) {
 
   //nodelist.json (yet another format)
   function getNodelistJson(stream, query) {
-    var data = receiver.getData(query)
-    var nl = {}
+    const data = receiver.getData(query)
+    const nl = {}
     nl.version = '1.0.0'
     nl.updated_at = new Date().toISOString()
     nl.nodes = []
     async.forEachOf(data, function(n, k, finished) {
-      var node = {}
+      const node = {}
       node.id = k
       node.name = _.get(n, 'nodeinfo.hostname')
       node.status = {}

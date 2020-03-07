@@ -16,13 +16,13 @@
 
 'use strict'
 
-var async = require('async')
-var _ = require('lodash')
+const async = require('async')
+const _ = require('lodash')
 
 module.exports = function(receiver, config) {
 
   function isOnline(node, pkg, offlineTime) {
-    var lastseen
+    let lastseen
     if (pkg && _.has(node, 'lastupdate.' + pkg))
       lastseen = _.get(node, 'lastupdate.' + pkg)
     else
@@ -43,9 +43,9 @@ module.exports = function(receiver, config) {
   //Prometheus metrics
   function getMetrics(stream, query) {
     stream.writeHead(200, { 'Content-Type': 'text/plain' })
-    var data = receiver.getData(query)
+    const data = receiver.getData(query)
     function save(n, stream, labels, path, name, value) {
-      var newLabels = []
+      const newLabels = []
       Object.keys(labels).map(function(key) {
         // escape special chars (\, ", newline)
         if (typeof labels[key] === 'string')
@@ -71,7 +71,7 @@ module.exports = function(receiver, config) {
       else
         return 0
     }
-    var counter = {}
+    const counter = {}
     counter.meshnodes = {}
     counter.meshnodes.online = 0
     counter.meshnodes.total = 0
@@ -83,12 +83,12 @@ module.exports = function(receiver, config) {
     counter.traffic.mgmt = {}
     counter.traffic.mgmt.rx = 0
     counter.traffic.mgmt.tx = 0
-    var nodeTable = {}
-    var typeTable = {}
+    const nodeTable = {}
+    const typeTable = {}
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'nodeinfo.network.mesh')) {
-        for (let bat in n.nodeinfo.network.mesh) {
-          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+        for (const bat in n.nodeinfo.network.mesh) {
+          for (const type in n.nodeinfo.network.mesh[bat].interfaces) {
             if (typeof n.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
               n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
                 typeTable[d] = type
@@ -101,7 +101,7 @@ module.exports = function(receiver, config) {
       if (isOnline(n))
         counter.meshnodes.online++
 
-      var labels = {}
+      const labels = {}
       labels['nodeid'] = k
 
       if (_.has(n, 'nodeinfo.hostname'))
@@ -156,9 +156,9 @@ module.exports = function(receiver, config) {
 
         if (_.has(n, 'statistics.wireless')) {
           if (Array.isArray(n.statistics.wireless)) {
-            for (let freq_index in n.statistics.wireless) {
+            for (const freq_index in n.statistics.wireless) {
               labels['mtype'] = 'airtime' + n.statistics.wireless[freq_index].frequency.toString().substring(0, 1)
-              for (let airtime_type in n.statistics.wireless[freq_index]) {
+              for (const airtime_type in n.statistics.wireless[freq_index]) {
                 if (airtime_type != 'frequency') {
                   labels['type'] = airtime_type
                   save(n, stream, labels, 'statistics.wireless.[' + freq_index + '].' + airtime_type, 'statistics_airtime')
@@ -176,24 +176,24 @@ module.exports = function(receiver, config) {
       counter.traffic.mgmt.tx += get(n, 'statistics.traffic.mgmt_tx.bytes')
 
       if (_.has(n, 'neighbours.batadv') && isOnline(n, 'neighbours'))
-        for (let mac in n.neighbours.batadv)
+        for (const mac in n.neighbours.batadv)
           nodeTable[mac] = k
 
       finished1()
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
         if (_.has(n, 'neighbours.batadv') && isOnline(n, 'neighbours')) {
-          for (let dest in n.neighbours.batadv) {
+          for (const dest in n.neighbours.batadv) {
             if (_.has(n.neighbours.batadv[dest], 'neighbours'))
-              for (let src in n.neighbours.batadv[dest].neighbours) {
-                var source = nodeTable[src]
-                var target = nodeTable[dest]
-                var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq']) / 255
+              for (const src in n.neighbours.batadv[dest].neighbours) {
+                let source = nodeTable[src]
+                const target = nodeTable[dest]
+                const tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq']) / 255
                 if (source === undefined) {
                   source = src.replace(/:/g, '')
                 }
-                var source_name = _.get(data, [source, 'nodeinfo', 'hostname'], source)
-                var target_name = _.get(data, [target, 'nodeinfo', 'hostname'], target)
+                const source_name = _.get(data, [source, 'nodeinfo', 'hostname'], source)
+                const target_name = _.get(data, [target, 'nodeinfo', 'hostname'], target)
                 stream.write('link_tq{source="' + source + '",target="' + target
                   + '",source_name="' + source_name + '",target_name="' + target_name
                   + '",link_type="' + typeTable[dest]  + '"} ' + tq + '\n')
@@ -206,7 +206,7 @@ module.exports = function(receiver, config) {
         stream.write('meshnodes_online_total ' + counter.meshnodes.online + '\n')
         stream.write('total_clients ' + counter.clients + '\n')
 
-        var labels = {}
+        const labels = {}
 
         labels['mtype'] = 'user'
         labels['type'] = 'forward'

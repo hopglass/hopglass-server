@@ -16,8 +16,8 @@
 
 'use strict'
 
-var async = require('async')
-var _ = require('lodash')
+const async = require('async')
+const _ = require('lodash')
 
 
 module.exports = function(receiver, config) {
@@ -30,16 +30,16 @@ module.exports = function(receiver, config) {
   }
 
   function getNodesJson(stream, query) {
-    var data = receiver.getData(query)
-    var nJson = {}
+    const data = receiver.getData(query)
+    const nJson = {}
     nJson.version = 2
     nJson.nodes = []
     nJson.timestamp = new Date().toISOString()
-    var macTable = {}
+    const macTable = {}
     async.forEachOf(data, function(n, k, finished) {
       if (_.has(n, 'nodeinfo.network.mesh')) {
-        for (let bat in n.nodeinfo.network.mesh) {
-          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+        for (const bat in n.nodeinfo.network.mesh) {
+          for (const type in n.nodeinfo.network.mesh[bat].interfaces) {
             n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
               macTable[d] = k
             })
@@ -50,7 +50,7 @@ module.exports = function(receiver, config) {
     }, function() {
       async.forEachOf(data, function(n, k, finished) {
         if (n.nodeinfo) {
-          var node = {}
+          const node = {}
           node.nodeinfo = _.get(n, 'nodeinfo', {})
           node.flags = {}
           node.flags.gateway = _.get(n, 'nodeinfo.vpn') || _.get(n, 'nodeinfo.gateway')
@@ -100,8 +100,8 @@ module.exports = function(receiver, config) {
   }
 
   function getGraphJson(stream, query) {
-    var data = receiver.getData(query)
-    var gJson = {}
+    const data = receiver.getData(query)
+    const gJson = {}
     gJson.timestamp = new Date().toISOString()
     gJson.version = 1
     gJson.batadv = {}
@@ -110,23 +110,23 @@ module.exports = function(receiver, config) {
     gJson.batadv.nodes = []
     gJson.batadv.links = []
     gJson.batadv.graph = null
-    var nodeTable = {}
-    var macTable = {}
-    var typeTable = {}
-    var counter = 0
+    const nodeTable = {}
+    const macTable = {}
+    const typeTable = {}
+    let counter = 0
     function createEntry(mac) {
-      var nodeEntry = {}
+      const nodeEntry = {}
       nodeEntry.id = mac
       nodeEntry.node_id = macTable[mac]
       nodeTable[mac] = counter
-      var node = data[macTable[mac]]
+      const node = data[macTable[mac]]
       if (_.has(node, 'neighbours.batadv'))
-        for (let m in _.get(node, 'neighbours.batadv')) {
+        for (const m in _.get(node, 'neighbours.batadv')) {
           nodeTable[m] = counter
         }
       if (_.has(node, 'nodeinfo.network.mesh'))
-        for (let bat in node.nodeinfo.network.mesh) {
-          for (let type in node.nodeinfo.network.mesh[bat].interfaces) {
+        for (const bat in node.nodeinfo.network.mesh) {
+          for (const type in node.nodeinfo.network.mesh[bat].interfaces) {
             if (typeof node.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
               node.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(m) {
                 nodeTable[m] = counter
@@ -140,12 +140,12 @@ module.exports = function(receiver, config) {
     }
     async.forEachOf(data, function(n, k, finished1) {
       if (_.has(n, 'neighbours.batadv') && _.has(n, 'nodeinfo.network.mac'))
-        for (let mac in n.neighbours.batadv) {
+        for (const mac in n.neighbours.batadv) {
           macTable[mac] = k
         }
       if (_.has(n, 'nodeinfo.network.mesh'))
-        for (let bat in n.nodeinfo.network.mesh) {
-          for (let type in n.nodeinfo.network.mesh[bat].interfaces) {
+        for (const bat in n.nodeinfo.network.mesh) {
+          for (const type in n.nodeinfo.network.mesh[bat].interfaces) {
             if (typeof n.nodeinfo.network.mesh[bat].interfaces[type].forEach == 'function')
               n.nodeinfo.network.mesh[bat].interfaces[type].forEach(function(d) {
                 typeTable[d] = type
@@ -157,16 +157,16 @@ module.exports = function(receiver, config) {
     }, function() {
       async.forEachOf(data, function(n, k, finished2) {
         if (_.has(n, 'neighbours.batadv') && isOnline(n)) {
-          for (let dest in n.neighbours.batadv) {
+          for (const dest in n.neighbours.batadv) {
             if (_.has(n.neighbours.batadv[dest], 'neighbours'))
-              for (let src in n.neighbours.batadv[dest].neighbours) {
-                var link = {}
+              for (const src in n.neighbours.batadv[dest].neighbours) {
+                const link = {}
                 link.source = nodeTable[src]
                 link.target = nodeTable[dest]
-                var tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
+                const tq = _.get(n, ['neighbours', 'batadv', dest, 'neighbours', src, 'tq'])
                 link.tq = 255 / (tq ? tq : 1)
 
-                var ts = typeTable[src], td = typeTable[dest]
+                const ts = typeTable[src], td = typeTable[dest]
                 if (ts === 'l2tp' || td === 'l2tp') {
                   link.type = 'l2tp'
                 } else if (ts === 'fastd' || td === 'fastd') {
@@ -175,7 +175,7 @@ module.exports = function(receiver, config) {
                   link.type = 'tunnel'
 
                   if (td === 'tunnel' && (ts == undefined || ts === 'tunnel')) {
-                    var fds = 0, tds = 0, sis = 0
+                    let fds = 0, tds = 0, sis = 0
                     if (_.get(data[macTable[dest]], 'nodeinfo.software.fastd.enabled', false)) fds++
                     if (_.get(data[macTable[src]], 'nodeinfo.software.fastd.enabled', false)) fds++
                     if (_.get(data[macTable[dest]], 'nodeinfo.software.tunneldigger.enabled', false)) tds++
@@ -209,7 +209,7 @@ module.exports = function(receiver, config) {
     })
   }
 
-  var exports = {
+  const exports = {
     /* eslint-disable quotes */
     "nodes.json": getNodesJson,
     "graph.json": getGraphJson

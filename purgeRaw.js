@@ -1,11 +1,11 @@
 #!/usr/bin/node
 'use strict'
 
-var _ = require('lodash')
-var fs = require('fs')
-var async = require('async')
+const _ = require('lodash')
+const fs = require('fs')
+const async = require('async')
 
-var argv = require('minimist')(process.argv.slice(2))
+const argv = require('minimist')(process.argv.slice(2))
 
 argv.file    = _.get(argv, 'file', './raw.json')
 argv.type    = _.get(argv, 'type', false)
@@ -19,14 +19,14 @@ if (argv['?'] || argv.help || !(_.isString(argv.type) && argv.value))
 
 argv.value = _.toString(argv.value).split(',')
 
-var now = (new Date()).getTime()
-var count = {total: 0, removed: 0}
+const now = (new Date()).getTime()
+const count = {total: 0, removed: 0}
 
 fs.readFile(argv.file, 'utf8', function(err, res) {
   if (err)
     throw(err)
 
-  var raw = JSON.parse(res)
+  const raw = JSON.parse(res)
 
   async.forEachOfSeries(raw, function(node, id, callback) {
     count.total++
@@ -57,7 +57,7 @@ fs.readFile(argv.file, 'utf8', function(err, res) {
 })
 
 function filter(node, callback) {
-  var out = false
+  let out = false
   async.forEachOfSeries(argv.value, function(element, index, finished) {
 
     switch (argv.type) {
@@ -69,12 +69,13 @@ function filter(node, callback) {
       if (_.get(node, 'nodeinfo.node_id', element) == element)
         out = true
       break
-    case 'offline':
-      var lastseen = (new Date(_.get(node, 'lastseen', 0))).getTime()
-      var v = _.toNumber(element)*86400*1000
+    case 'offline': {
+      const lastseen = (new Date(_.get(node, 'lastseen', 0))).getTime()
+      const v = _.toNumber(element)*86400*1000
       if (now - lastseen >= v)
         out = true
       break
+    }
     default:
       return callback(false, 'unknown type \'' + argv.type + '\'\n')
     }
@@ -86,8 +87,8 @@ function filter(node, callback) {
 }
 
 function outputHelp() {
-  var out = ''
-  var ln = function(content) { out += (content ? ' ' + content : '') + '\n' }
+  let out = ''
+  const ln = function(content) { out += (content ? ' ' + content : '') + '\n' }
 
   ln()
   ln('Usage: ./purgeRaw.js <options>')

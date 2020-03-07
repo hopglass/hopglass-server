@@ -16,11 +16,11 @@
 
 'use strict'
 
-var fs = require('fs')
-var _ = require('lodash')
-var async = require('async')
+const fs = require('fs')
+const _ = require('lodash')
+const async = require('async')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   receivers: [
     { module: "announced" },
@@ -50,9 +50,9 @@ module.exports = function (observer, configData) {
 
   _.merge(config, configData)
 
-  var receiverList = []
-  var raw = {}
-  var overlay = {}
+  const receiverList = []
+  let raw = {}
+  const overlay = {}
 
   try {
     raw = JSON.parse(fs.readFileSync(config.storage.file, 'utf8'))
@@ -60,12 +60,12 @@ module.exports = function (observer, configData) {
     console.log(err)
   }
 
-  var api = {}
+  const api = {}
   api.receiverCallback  = receiverCallback
   api.sharedConfig = config
   api.getRaw = getRaw
-  for (var i in config.receivers) {
-    var r = config.receivers[i]
+  for (const i in config.receivers) {
+    const r = config.receivers[i]
     try {
       receiverList.push(require(__dirname + '/receiver/' + r.module)(i, r.config, api))
     } catch(err) {
@@ -76,7 +76,7 @@ module.exports = function (observer, configData) {
   }
 
   function receiverCallback(id, obj, receiverId) {
-    var receiverConf = config.receivers[receiverId]
+    const receiverConf = config.receivers[receiverId]
 
     if (!raw[id]) {
       raw[id] = {}
@@ -108,7 +108,7 @@ module.exports = function (observer, configData) {
        && Array.isArray(obj.statistics.wireless)) {
 
         obj.statistics.airtime = []
-        for (let freq of obj.statistics.wireless) {
+        for (const freq of obj.statistics.wireless) {
           if (Number.isInteger(freq.frequency) &&
               Number.isInteger(freq.active) &&
               Number.isInteger(freq.busy)) {
@@ -144,7 +144,7 @@ module.exports = function (observer, configData) {
   }
 
   function getData(query) {
-    var data = getRaw()
+    let data = getRaw()
     _.merge(data, overlay)
 
     if (typeof query === 'object')
@@ -166,9 +166,9 @@ module.exports = function (observer, configData) {
       })
     case 'firstseen':
       return _.pickBy(data, function(o) {
-        var firstseen = (new Date(o.firstseen)).getTime()
-        var now = (new Date()).getTime()
-        var v = parseInt(query.value)*1000
+        const firstseen = (new Date(o.firstseen)).getTime()
+        const now = (new Date()).getTime()
+        const v = parseInt(query.value)*1000
         if (v >= 0) {
           return now - firstseen <= v ? true : false           // all nodes seen last n seconds
         } else {
@@ -177,9 +177,9 @@ module.exports = function (observer, configData) {
       })
     case 'lastseen':
       return _.pickBy(data, function(o) {
-        var lastseen = (new Date(o.lastseen)).getTime()
-        var now = (new Date()).getTime()
-        var v = parseInt(query.value)*1000
+        const lastseen = (new Date(o.lastseen)).getTime()
+        const now = (new Date()).getTime()
+        const v = parseInt(query.value)*1000
         if (v >= 0) {
           return now - lastseen <= v ? true : false
         } else {
@@ -188,8 +188,8 @@ module.exports = function (observer, configData) {
       })
     case 'uptime':
       return _.pickBy(data, function(o) {
-        var uptime = parseInt(_.get(o, 'statistics.uptime', '-1'))
-        var v = parseInt(query.value)
+        const uptime = parseInt(_.get(o, 'statistics.uptime', '-1'))
+        const v = parseInt(query.value)
         if (v >= 0) {
           return uptime <= v ? true : false
         } else {
@@ -198,8 +198,8 @@ module.exports = function (observer, configData) {
       })
     case 'clients':
       return _.pickBy(data, function(o) {
-        var clients = parseInt(_.get(o, 'statistics.clients.total', '-1'))
-        var v = parseInt(query.value)
+        const clients = parseInt(_.get(o, 'statistics.clients.total', '-1'))
+        const v = parseInt(query.value)
         if (v >= 0) {
           return clients >= v ? true : false
         } else {
@@ -216,9 +216,9 @@ module.exports = function (observer, configData) {
   }
 
   function purgeData() {
-    var now = new Date().getTime()
+    const now = new Date().getTime()
     async.forEachOf(raw, function(n, k, finished) {
-      var lastseen = (new Date(n.lastseen)).getTime()
+      const lastseen = (new Date(n.lastseen)).getTime()
       if (now - lastseen >= config.purge.maxAge*86400*1000 || typeof n.lastseen === 'undefined') {
         console.info('purge old node ' + k)
         delete raw[k]
@@ -231,7 +231,7 @@ module.exports = function (observer, configData) {
 
   function storeData() {
     try {
-      var fn = fs.openSync(config.storage.file + '.tmp', 'w')
+      const fn = fs.openSync(config.storage.file + '.tmp', 'w')
       fs.writeSync(fn, JSON.stringify(getRaw()))
       fs.fsyncSync(fn) // take care that it was actually written to disk
       fs.closeSync(fn)
@@ -252,7 +252,7 @@ module.exports = function (observer, configData) {
     process.exit(0)
   })
 
-  var exports = {}
+  const exports = {}
   exports.getData = getData
   exports.getRaw  = getRaw
   return exports

@@ -16,11 +16,11 @@
 
 'use strict'
 
-var fs = require('fs')
-var _ = require('lodash')
-var hjson = require('hjson')
+const fs = require('fs')
+const _ = require('lodash')
+const hjson = require('hjson')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   "file": "./aliases.json"
 }
@@ -30,7 +30,7 @@ delete require.cache[__filename]
 module.exports = function(receiverId, configData, api) {
   _.merge(config, configData)
 
-  var aliases = {}
+  let aliases = {}
 
   try {
     aliases = hjson.parse(fs.readFileSync(config.file, 'utf8'))

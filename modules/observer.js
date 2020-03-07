@@ -16,9 +16,9 @@
 
 'use strict'
 
-var _ = require('lodash')
+const _ = require('lodash')
 
-var config = {
+const config = {
   /* eslint-disable quotes */
   observers: [
   ]
@@ -30,10 +30,10 @@ module.exports = function (configData) {
 
   _.merge(config, configData)
 
-  var observerList = []
+  const observerList = []
 
-  for (var i in config.observers) {
-    var r = config.observers[i]
+  for (const i in config.observers) {
+    const r = config.observers[i]
     try {
       observerList.push(require(__dirname + '/observer/' + r.module)(r.config))
     } catch(err) {
@@ -44,7 +44,7 @@ module.exports = function (configData) {
   }
 
   function dataReceived(data) {
-    for (var i in observerList) {
+    for (const i in observerList) {
       try {
         observerList[i].dataReceived(data)
       } catch(err) {
@@ -53,7 +53,7 @@ module.exports = function (configData) {
     }
   }
 
-  var exports = {}
+  const exports = {}
   exports.dataReceived = dataReceived
   return exports
 }

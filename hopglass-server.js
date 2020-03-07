@@ -18,12 +18,12 @@
 
 'use strict'
 
-var fs = require('fs')
-var _ = require('lodash')
-var hjson = require('hjson')
+const fs = require('fs')
+const _ = require('lodash')
+const hjson = require('hjson')
 
 //start with default config
-var config = {
+const config = {
   /* eslint-disable quotes */
   "core": { },
   "receiver": { },
@@ -32,13 +32,13 @@ var config = {
   "observer": { }
 }
 
-var argv = require('minimist')(process.argv.slice(2))
+let argv = require('minimist')(process.argv.slice(2))
 
-let configPath = _.get(argv, 'config', './config.json')
+const configPath = _.get(argv, 'config', './config.json')
 
 //read config file sync
 try {
-  var configFile = hjson.parse(fs.readFileSync(configPath, 'utf8'))
+  const configFile = hjson.parse(fs.readFileSync(configPath, 'utf8'))
 
   if (_.has(configFile, 'receiver.ifaces'))
     config.receiver.ifaces = undefined
@@ -51,7 +51,7 @@ try {
 
 argv = undefined
 
-var observer = require('./modules/observer')(config.observer)
-var receiver = require('./modules/receiver')(observer, config.receiver)
-var provider = require('./modules/provider')(receiver, config.provider)
+const observer = require('./modules/observer')(config.observer)
+const receiver = require('./modules/receiver')(observer, config.receiver)
+const provider = require('./modules/provider')(receiver, config.provider)
 require('./modules/webserver')(provider, config.webserver)
