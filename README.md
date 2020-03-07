@@ -12,12 +12,10 @@ The HopGlass Server collects data from Freifunk networks and processes it to be 
        mkdir -p /opt/hopglass
        git clone https://github.com/hopglass/hopglass-server /opt/hopglass/server
 
-3. Install NPM dependencies with either `yarn` or `npm`
+3. Install NPM dependencies with `yarn`
       
        cd /opt/hopglass/server
        yarn install
-       # OR
-       npm install
 
 4. Copy the systemd service file to `/etc/systemd/system`, or create an init-script if your distribution does not support systemd.
 
@@ -67,8 +65,6 @@ For a start, you can try this:
 
        cd /opt/hopglass/server
        yarn install
-       #OR
-       npm install
 
 1. restart the service
 
