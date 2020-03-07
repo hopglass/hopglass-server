@@ -102,6 +102,32 @@ module.exports = function (observer, configData) {
       raw[id].lastupdate.nodeinfo = new Date().toISOString()
     }
     if (obj.statistics) {
+      if (_.has(raw[id], 'statistics.wireless')
+       && _.has(obj, 'statistics.wireless')
+       && Array.isArray(raw[id].statistics.wireless)
+       && Array.isArray(obj.statistics.wireless)) {
+
+        obj.statistics.airtime = []
+        for (let freq of obj.statistics.wireless) {
+          if (Number.isInteger(freq.frequency) &&
+              Number.isInteger(freq.active) &&
+              Number.isInteger(freq.busy)) {
+            const oldfreq = raw[id].statistics.wireless
+              .filter(f => f.frequency === freq.frequency)[0]
+
+            if (!oldfreq) continue
+
+            const activeDelta = (freq.active - oldfreq.active)
+
+            obj.statistics.airtime.push({
+              frequency: freq.frequency,
+              busy: (freq.busy - oldfreq.busy) / activeDelta,
+              rx: (_.get(freq, 'rx', 0) - _.get(oldfreq, 'rx', 0)) / activeDelta,
+              tx: (_.get(freq, 'tx', 0) - _.get(oldfreq, 'tx', 0)) / activeDelta,
+            })
+          }
+        }
+      }
       raw[id].statistics = obj.statistics
       raw[id].lastupdate.statistics = new Date().toISOString()
     }
