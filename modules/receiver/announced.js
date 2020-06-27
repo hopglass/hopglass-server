@@ -72,15 +72,18 @@ module.exports = function(receiverId, configData, api) {
     })
   })
 
-  function retrieve(stat, address) {
+  async function retrieve(stat, address) {
     const ip = address ? address : config.target.ip
     const req = Buffer.from('GET ' + stat)
-    api.sharedConfig.ifaces.forEach(function(iface) {
-      collector.setMulticastInterface(ip + '%' + iface)
-      collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
-        if (err) console.error(err)
+    for (const iface of api.sharedConfig.ifaces) {
+      await new Promise((resume) => {
+        collector.setMulticastInterface(ip + '%' + iface)
+        collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
+          if (err) console.error(err)
+          resume()
+        })
       })
-    })
+    }
   }
 
   collector.on('listening', function() {
