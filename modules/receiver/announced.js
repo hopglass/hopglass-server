@@ -77,8 +77,8 @@ module.exports = function(receiverId, configData, api) {
     const req = Buffer.from('GET ' + stat)
     for (const iface of api.sharedConfig.ifaces) {
       await new Promise((resume) => {
-        collector.setMulticastInterface(ip + '%' + iface)
-        collector.send(req, 0, req.length, config.target.port, ip + '%' + iface, function (err) {
+        collector.setMulticastInterface('::%' + iface)
+        collector.send(req, 0, req.length, config.target.port, ip, function (err) {
           if (err) console.error(err)
           resume()
         })
