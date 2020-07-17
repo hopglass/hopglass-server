@@ -7,7 +7,7 @@
     "async": "^3.2.0",
     "hjson": "^3.1.2",
     "lodash": "^4.17.15",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.3"
   },
   "devDependencies": {
     "eslint": "^6.8.0"
