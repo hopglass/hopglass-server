@@ -10,7 +10,7 @@
     "minimist": "^1.2.5"
   },
   "devDependencies": {
-    "eslint": "^7.27.0"
+    "eslint": "^7.28.0"
   },
   "scripts": {
     "start": "node hopglass-server.js",
