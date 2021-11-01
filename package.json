@@ -4,7 +4,7 @@
   "description": "Collect data from Freifunk networks and provide it in serveral formats",
   "main": "hopglass-server.js",
   "dependencies": {
-    "async": "^3.2.1",
+    "async": "^3.2.2",
     "hjson": "^3.2.2",
     "lodash": "^4.17.21",
     "minimist": "^1.2.5"
