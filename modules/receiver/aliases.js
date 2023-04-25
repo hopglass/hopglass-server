@@ -32,13 +32,25 @@ module.exports = function(receiverId, configData, api) {
 
   let aliases = {}
 
-  try {
-    aliases = hjson.parse(fs.readFileSync(config.file, 'utf8'))
-  } catch (err) {
-    console.warn('alias file "' + config.file + '" doesn\'t exist, using empty')
+  if (!fs.existsSync(config.file)) {
+    console.log('creating empty %o', config.file)
+    fs.writeFileSync(config.file, '{}')
   }
 
-  _.forEach(aliases, function(n, k) {
-    api.receiverCallback(k, n, receiverId)
-  })
+  function doLoad() {
+    console.log('reloading %o', config.file)
+    try {
+      aliases = hjson.parse(fs.readFileSync(config.file, 'utf8'))
+    } catch (err) {
+      console.warn('couldn\'t read %o - %o - using empty or previous', config.file, String(err))
+    }
+
+    _.forEach(aliases, function(n, k) {
+      api.receiverCallback(k, n, receiverId)
+    })
+  }
+
+  doLoad()
+
+  fs.watchFile(config.file, doLoad)
 }
